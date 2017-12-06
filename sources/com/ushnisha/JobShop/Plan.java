@@ -73,6 +73,6 @@ public class Plan {
      * @return String value representing this plan
      */
     public String toString() {
-        return this.id + "; Start: " + this.start + "; End: " + this.end;
+        return this.id + " [ " + this.start + " - " + this.end + " ]";
     }
 }

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 
 /**
  * The overall JobShop model class that is used to drive this application
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 public class JobShop {
 
 	public static enum DEBUG_LEVELS { NONE, MINIMAL, STANDARD, DETAILED, MAXIMAL };
-	public static final DEBUG_LEVELS DEBUG = DEBUG_LEVELS.STANDARD;
+	public static final DEBUG_LEVELS DEBUG = DEBUG_LEVELS.MINIMAL;
 	
     private String dataSet;
     private Map<String,Plan> plans;
@@ -83,7 +84,7 @@ public class JobShop {
         solver.runStaticAnalysis(p);
         solver.generatePlan(p);
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.STANDARD.ordinal()) { 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
 			jshop.print();
 		}
 
@@ -476,51 +477,57 @@ public class JobShop {
     public void print() {
 
         System.out.println("\nPlans:");
-        for (String p : this.plans.keySet()) {
+        List<String> splans = this.plans.keySet()
+                                .stream()
+                                .sorted()
+                                .collect(Collectors.toList());
+        for (String p : splans) {
             Plan plan = this.plans.get(p);
             System.out.println(plan);
         }
 
-        System.out.println("\nSKUs:");
-        for (String s : this.skus.keySet()) {
-            SKU sku = this.skus.get(s);
-            System.out.println(sku);
-        }
-
-        System.out.println("\nCalendars:");
-        for (String c : this.calendars.keySet()) {
-            Calendar cal = calendars.get(c);
-            System.out.println(cal);
-        }
-
-        System.out.println("\nWorkcenters:");
-        for (String w : this.workcenters.keySet()) {
-            Workcenter ws = this.workcenters.get(w);
-            System.out.println(ws);
-        }
-
-        System.out.println("\nTasks:");
-        for (String t : this.tasks.keySet()) {
-            Task task = this.tasks.get(t);
-            System.out.println(task);
-        }
-
         System.out.println("\nDemands:");
-        for (String d : this.demands.keySet()) {
+        List<String> sdmds = this.demands.keySet()
+                                .stream()
+                                .sorted()
+                                .collect(Collectors.toList());
+        for (String d : sdmds) {
             Demand dmd = this.demands.get(d);
             System.out.println(dmd);
         }
 
         System.out.println("\nTaskPlans:");
-        for (String t : this.tasks.keySet()) {
+        List<String> stasks = this.tasks.keySet()
+                                .stream()
+                                .sorted()
+                                .collect(Collectors.toList());
+        for (String t : stasks) {
             Task task = this.tasks.get(t);
-            for (TaskPlan tp : task.getTaskPlans()) {
+            List<TaskPlan> tps = task.getTaskPlans().stream()
+                                    .sorted(Comparator.comparing(TaskPlan::getStart))
+                                    .collect(Collectors.toList());
+            for (TaskPlan tp : tps) {
                 System.out.println(tp);
             }
         }
 
+        System.out.println("\nWorkcenterPlans:");
+        List<String> sworks = this.workcenters.keySet()
+                                .stream()
+                                .sorted()
+                                .collect(Collectors.toList());
+        for (String w : sworks) {
+            Workcenter wrk = this.workcenters.get(w);
+            System.out.println(wrk);
+            List<TaskPlan> tps = wrk.getTaskPlans().stream()
+                                    .sorted(Comparator.comparing(TaskPlan::getStart))
+                                    .collect(Collectors.toList());
+            for (TaskPlan tp : tps) {
+                System.out.println(" - " + tp);
+            }
+        }
     }
-    
+
     public static void usage() {
 		System.out.println("Usage is:");
 		System.out.println("\tjava -jar bin/JobShop.jar -d <dataset_directory> -p <PlanID>");

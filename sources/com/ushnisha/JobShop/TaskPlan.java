@@ -88,7 +88,10 @@ public class TaskPlan {
      * @return String value representing the TaskPlan for output/log purposes
      */
     public String toString() {
-        return this.task.getTaskNumber() + "; Start: " + this.start + "; End: " + this.end +
-               "; Quantity: " + this.quantity + "; Workcenter: " + this.workcenter + "; DemandID: " + this.demandID + "; Plan: " + this.plan.getID();
+        return this.task.getTaskNumber() + " [ " + this.start + " - " + 
+               this.end + "] Qty: " + this.quantity + 
+               "; DemandID: " + this.demandID + 
+               "; Plan: " + this.plan.getID() +
+               "; Loads: " + this.workcenter;
     }
 }

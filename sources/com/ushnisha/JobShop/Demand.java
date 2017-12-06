@@ -15,7 +15,8 @@ public class Demand {
     private SKU sku;
     private LocalDateTime duedate;
     private LocalDateTime plandate;
-    private long quantity;
+    private long dueqty;
+    private long planqty;
     private long priority;
     private List<TaskPlan> delivery_taskplans;
 
@@ -35,11 +36,13 @@ public class Demand {
         this.customer_id = cid;
         this.sku = s;
         this.duedate = dd;
-        this.quantity = q;
+        this.dueqty = q;
         this.priority = p;
-        this.delivery_taskplans = new ArrayList<TaskPlan>();
         this.plan = pln;
+
+        this.delivery_taskplans = new ArrayList<TaskPlan>();
         this.plandate = null;
+        this.planqty = 0;
     }
 
     /**
@@ -78,8 +81,8 @@ public class Demand {
      * Returns the demand quantity
      * @return quantity for which we are placing the demand
      */
-    public long getQuantity() {
-        return this.quantity;
+    public long getDueQuantity() {
+        return this.dueqty;
     }
 
     /**
@@ -118,10 +121,10 @@ public class Demand {
      * Ask the demand to go plan itself and then compute its planned date/quantity
      */
     public void plan() {
-        Request req = new Request(this.id, this.quantity, this.duedate, this.plan);
+        Request req = new Request(this.id, this.dueqty, this.duedate, this.plan);
         Promise promise = this.sku.getDeliveryTask().request(req);
         this.delivery_taskplans = promise.getTaskPlans();
-        this.updatePlanDate();
+        this.updatePlanData();
     }
 
 
@@ -129,11 +132,13 @@ public class Demand {
      * Updates the planned date/quantity of the demand based on the
      * delivery taskplans that go to meet this demand
      */
-    private void updatePlanDate() {
+    private void updatePlanData() {
 
         plandate = LocalDateTime.MIN;
+        planqty = 0;
 
         for (TaskPlan t : this.delivery_taskplans) {
+            planqty += t.getQuantity();
             if (t.getEnd().isAfter(plandate)) {
                 plandate = t.getEnd();
             }
@@ -145,6 +150,8 @@ public class Demand {
      * @return String that represents the demand (for output/log purposes)
      */
     public String toString() {
-        return this.sku + "-" + this.id + "; Due Date: " + this.duedate;
+        return this.sku + "-" + this.id + 
+               "; Due: " + this.dueqty + " on " + this.duedate + 
+               "; Planned: " + this.planqty + " on " + this.plandate;
     }
 }
