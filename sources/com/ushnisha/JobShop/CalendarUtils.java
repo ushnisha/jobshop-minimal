@@ -3,9 +3,9 @@ package com.ushnisha.JobShop;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import com.ushnisha.JobShop.Calendar;
-import com.ushnisha.JobShop.CalendarShift;
-import com.ushnisha.JobShop.DateRange;
+
+import static com.ushnisha.JobShop.JobShop.DEBUG_LEVELS;
+import static com.ushnisha.JobShop.JobShop.DEBUG;
 
 /**
  * A utility class for Calendar and CalendarShift based calculations
@@ -50,12 +50,17 @@ public class CalendarUtils {
         LocalDateTime currentEnd = validEnd;
         int currentShiftIdx = getShiftIndex(shifts, currentEnd);
 
-        //System.out.println("Base LT from calcStart: " + remaining_tm);
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) { 
+			System.out.println("Base LT from calcStart: " + remaining_tm);
+		}
+		
         while (remaining_tm > 0) {
             CalendarShift cshift = shifts.get(currentShiftIdx);
             long time_in_currentShift = ChronoUnit.MINUTES.between(cshift.getStart(), currentEnd);
             time_in_currentShift = (long) Math.ceil(time_in_currentShift * cshift.getValue());
-            //System.out.println(cshift.getStart() + "-" + currentEnd + "; = " + time_in_currentShift + "; Remaining Time: " + remaining_tm);
+            if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) { 
+				System.out.println(cshift.getStart() + "-" + currentEnd + "; = " + time_in_currentShift + "; Remaining Time: " + remaining_tm);
+			}
             if (time_in_currentShift >= remaining_tm) {
                 validStart = currentEnd.minusMinutes((long) Math.ceil(remaining_tm/cshift.getValue()));
                 remaining_tm -= time_in_currentShift;
@@ -107,12 +112,16 @@ public class CalendarUtils {
         LocalDateTime currentStart = validStart;
         int currentShiftIdx = getShiftIndex(shifts, currentStart);
 
-        //System.out.println("Base LT from calcEnd: " + remaining_tm);
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+			System.out.println("Base LT from calcEnd: " + remaining_tm);
+		}
         while (remaining_tm > 0) {
             CalendarShift cshift = shifts.get(currentShiftIdx);
             long time_in_currentShift = ChronoUnit.MINUTES.between(currentStart, cshift.getEnd());
             time_in_currentShift = (long) Math.ceil(time_in_currentShift * cshift.getValue());
-            //System.out.println(currentStart + "-" + cshift.getEnd() + "; = " + time_in_currentShift + "; Remaining Time: " + remaining_tm);
+            if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+				System.out.println(currentStart + "-" + cshift.getEnd() + "; = " + time_in_currentShift + "; Remaining Time: " + remaining_tm);
+			}
             if (time_in_currentShift >= remaining_tm) {
                 validEnd = currentStart.plusMinutes((long) Math.ceil(remaining_tm/cshift.getValue()));
                 remaining_tm -= time_in_currentShift;
@@ -218,7 +227,9 @@ public class CalendarUtils {
 
         while (!found) {
             CalendarShift avgShift = shifts.get(avg);
-            //System.out.println("Min: " + min + "; Max: " + max + "; Avg: " + avg + "; Shift Start: " + avgShift.getStart() + "; Shift End: " + avgShift.getEnd());
+            if (DEBUG.ordinal() >= DEBUG_LEVELS.MAXIMAL.ordinal()) {
+				System.out.println("Min: " + min + "; Max: " + max + "; Avg: " + avg + "; Shift Start: " + avgShift.getStart() + "; Shift End: " + avgShift.getEnd());
+			}
             if (dt.isBefore(avgShift.getStart())) {
                 max = avg;
                 avg = (min+max)/2;
@@ -231,7 +242,9 @@ public class CalendarUtils {
                 found = true;
             }
         }
-        //System.out.println("Date: " + dt + " is in shift index: " + avg);
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MAXIMAL.ordinal()) {
+			System.out.println("Date: " + dt + " is in shift index: " + avg);
+		}
         return avg;
     }
 

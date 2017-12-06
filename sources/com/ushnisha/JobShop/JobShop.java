@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
  */
 public class JobShop {
 
+	public static enum DEBUG_LEVELS { NONE, MINIMAL, STANDARD, DETAILED, MAXIMAL };
+	public static final DEBUG_LEVELS DEBUG = DEBUG_LEVELS.STANDARD;
+	
     private String dataSet;
     private Map<String,Plan> plans;
     private Map<String,Calendar> calendars;
@@ -36,7 +39,9 @@ public class JobShop {
      */
     public static void main(String args[]) {
 
-        System.out.println("\nA Minimal JobShop Planner");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("\nA Minimal JobShop Planner");
+		}
 
 		// Process the input argument; currently only two optional settings
 		// are supported
@@ -78,7 +83,9 @@ public class JobShop {
         solver.runStaticAnalysis(p);
         solver.generatePlan(p);
 
-        jshop.print();
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.STANDARD.ordinal()) { 
+			jshop.print();
+		}
 
     }
 
@@ -125,7 +132,9 @@ public class JobShop {
      */
     private void readPlans() {
 
-		System.out.println("Reading plan data...");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("Reading plan data...");
+		}
         Path path = Paths.get(this.dataSet + "/plan.csv");
         List<String> lines = new ArrayList<String>();
         Charset charset = Charset.forName("ISO-8859-1");
@@ -153,7 +162,9 @@ public class JobShop {
      */
     private void readPlanParams() {
 
-		System.out.println("Reading planparam data...");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("Reading planparam data...");
+		}
         Path path = Paths.get(this.dataSet + "/planparam.csv");
         List<String> lines = new ArrayList<String>();
         Charset charset = Charset.forName("ISO-8859-1");
@@ -183,7 +194,9 @@ public class JobShop {
      */
     private void readSKUs() {
 
-		System.out.println("Reading sku data...");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("Reading sku data...");
+		}
         Path path = Paths.get(this.dataSet + "/sku.csv");
         List<String> lines = new ArrayList<String>();
         Charset charset = Charset.forName("ISO-8859-1");
@@ -210,7 +223,9 @@ public class JobShop {
      */
     private void readCalendars() {
 
-		System.out.println("Reading calendar data...");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("Reading calendar data...");
+		}
         Path path = Paths.get(this.dataSet + "/calendar.csv");
         List<String> lines = new ArrayList<String>();
         Charset charset = Charset.forName("ISO-8859-1");
@@ -237,7 +252,9 @@ public class JobShop {
      */
     private void readCalendarShifts() {
 
-		System.out.println("Reading calendarshift data...");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("Reading calendarshift data...");
+		}
         Path path = Paths.get(this.dataSet + "/calendar_shift.csv");
         List<String> lines = new ArrayList<String>();
         Charset charset = Charset.forName("ISO-8859-1");
@@ -272,7 +289,9 @@ public class JobShop {
      */
     private void readWorkcenters() {
 
-		System.out.println("Reading workcenter data...");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("Reading workcenter data...");
+        }
         Path path = Paths.get(this.dataSet + "/workcenter.csv");
         List<String> lines = new ArrayList<String>();
         Charset charset = Charset.forName("ISO-8859-1");
@@ -301,7 +320,9 @@ public class JobShop {
      */
     private void readTasks() {
 
-		System.out.println("Reading task data...");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("Reading task data...");
+		}
         Path path = Paths.get(this.dataSet + "/task.csv");
         List<String> lines = new ArrayList<String>();
         Charset charset = Charset.forName("ISO-8859-1");
@@ -336,7 +357,9 @@ public class JobShop {
      */
     private void readDemands() {
 
-		System.out.println("Reading demand data...");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("Reading demand data...");
+		}
         Path path = Paths.get(this.dataSet + "/demand.csv");
         List<String> lines = new ArrayList<String>();
         Charset charset = Charset.forName("ISO-8859-1");
@@ -373,7 +396,9 @@ public class JobShop {
      */
     private void readTaskPrecedences() {
 
-		System.out.println("Reading task precedence data...");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("Reading task precedence data...");
+		}
         Path path = Paths.get(this.dataSet + "/task_precedence.csv");
         List<String> lines = new ArrayList<String>();
         Charset charset = Charset.forName("ISO-8859-1");
@@ -405,7 +430,9 @@ public class JobShop {
      */
     private void readTaskWorkcenterAssociations() {
 
-		System.out.println("Reading task workcenter association data...");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+			System.out.println("Reading task workcenter association data...");
+		}
         Path path = Paths.get(this.dataSet + "/task_workcenter_assn.csv");
         List<String> lines = new ArrayList<String>();
         Charset charset = Charset.forName("ISO-8859-1");

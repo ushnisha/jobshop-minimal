@@ -8,6 +8,9 @@ import java.util.TreeMap;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
+import static com.ushnisha.JobShop.JobShop.DEBUG_LEVELS;
+import static com.ushnisha.JobShop.JobShop.DEBUG;
+
 /**
  * A class representing a Task that needs to be performed to meet a Demand.
  * A sequence of one or more tasks may be required to convert a raw material
@@ -171,7 +174,9 @@ public class Task {
         DateRange res_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
         boolean capacity_constrained = Boolean.parseBoolean(p.getPlanParams().getParam("RESOURCE_CONSTRAINED"));
 
-        //System.out.println("Task: " + this.taskNum + "; querying workcenter for END ON OR BEFORE enddate");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+			System.out.println("Task: " + this.taskNum + "; querying workcenter for END ON OR BEFORE enddate");
+		}
         if (!capacity_constrained) {
             this.workcenter = this.workcenters.get(this.workcenters.firstKey());
             res_DateRange = this.workcenter.queryEndBefore(enddate, baseLT, p);
@@ -212,7 +217,9 @@ public class Task {
         DateRange res_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
         boolean capacity_constrained = Boolean.parseBoolean(p.getPlanParams().getParam("RESOURCE_CONSTRAINED"));
 
-        //System.out.println("Task: " + this.taskNum + "; querying workcenter for START ON OR AFTER startdate");
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+			System.out.println("Task: " + this.taskNum + "; querying workcenter for START ON OR AFTER startdate");
+		}
         if (!capacity_constrained) {
             this.workcenter = this.workcenters.get(this.workcenters.firstKey());
             res_DateRange = this.workcenter.queryStartAfter(startdate, baseLT, p);

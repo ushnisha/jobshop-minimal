@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 
+import static com.ushnisha.JobShop.JobShop.DEBUG_LEVELS;
+import static com.ushnisha.JobShop.JobShop.DEBUG;
 
 /**
  * A class representing a Workcenter or a Machine or a Resource.
