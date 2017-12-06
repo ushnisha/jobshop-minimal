@@ -35,5 +35,13 @@ public class DateRange {
     public LocalDateTime getEnd() {
         return this.end;
     }
+    
+    /**
+     * A string representation of the Date Range
+     * @return String value representing the Date Range
+     */
+     public String toString() {
+		 return "[ " + this.start + " - " + this.end + " ]";
+	 } 
 
 }
