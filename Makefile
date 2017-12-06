@@ -32,10 +32,11 @@ jdocs: dirs
 clean: dirs
 	$(RM) $(ROOT)/$(DEST)/$(PKG)/*.class && \
 	$(RM) $(ROOT)/$(BIN)/*.jar && \
-	$(RM) $(ROOT)/$(DOCS)/$(PKG)/*.html && \
-	$(RM) $(ROOT)/$(DOCS)/$(PKG)/*.css && \
-	$(RM) $(ROOT)/$(DOCS)/$(PKG)/*.js && \
-	$(RM) $(ROOT)/$(DOCS)/$(PKG)/package-list
+	$(RM) $(ROOT)/$(DOCS)/*.html && \
+	$(RM) $(ROOT)/$(DOCS)/*.css && \
+	$(RM) $(ROOT)/$(DOCS)/*.js && \
+	$(RM) $(ROOT)/$(DOCS)/package-list && \
+	$(RM) $(ROOT)/$(DOCS)/$(PKG)/*.html
 
 all: clean
 	make jdocs && make build && \
