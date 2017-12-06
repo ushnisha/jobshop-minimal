@@ -2,6 +2,7 @@ package com.ushnisha.JobShop;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 
 public class SimpleJobShopSolver {
 
@@ -34,6 +35,7 @@ public class SimpleJobShopSolver {
 
         List<Demand> demands = js.getDemands().values().stream()
                                         .filter(d -> d.getPlan().equals(plan))
+                                        .sorted(Comparator.comparing(Demand::getPriority))
                                         .collect(Collectors.toList());
 
         // Plan the demands one by one
