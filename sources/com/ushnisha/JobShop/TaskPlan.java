@@ -84,6 +84,27 @@ public class TaskPlan {
     }
 
     /**
+     * Utility function that returns true if a TaskPlan intersects a
+     * provided DateRange
+     * @param dr DateRange with which we check to see if TaskPlan intersects
+     * @return boolean value true if intersects; false if not
+     */
+    public boolean intersects(DateRange dr) {
+
+        if (this.end.isAfter(dr.getStart()) &&
+            (this.end.isEqual(dr.getEnd()) || this.end.isBefore(dr.getEnd()))) {
+            return true;
+        }
+
+        if ((this.start.isEqual(dr.getStart()) || this.start.isAfter(dr.getStart())) &&
+            this.start.isBefore(dr.getEnd())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * A string representation of the Task Plan
      * @return String value representing the TaskPlan for output/log purposes
      */

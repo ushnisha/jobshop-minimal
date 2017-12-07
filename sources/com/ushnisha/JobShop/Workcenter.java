@@ -98,11 +98,35 @@ public class Workcenter {
 
         boolean capacity_constrained = Boolean.parseBoolean(p.getPlanParams().getParam("RESOURCE_CONSTRAINED"));
 
-        if (!capacity_constrained) {
-            valid_DateRange = CalendarUtils.calcEndBefore(efficiency_calendar, enddate, baseLT);
-        }
-        else {
-            //
+        valid_DateRange = CalendarUtils.calcEndBefore(efficiency_calendar, enddate, baseLT);
+
+        // If capacity constrained, make sure that there is no interesection with other taskplans
+        // planned on this resource
+        //
+        if (capacity_constrained) {
+            // If calendar is unable to find a valid date-range before end date; then we need to look forward
+            if (valid_DateRange.getEnd().isAfter(enddate)) {
+                return queryStartAfter(valid_DateRange.getStart(), baseLT, p);
+            }
+
+            // Calendar was able to find a valid date-range before end date
+            // Now check if valid_DateRange is available and if not, look earlier
+            boolean intersects = false;
+            LocalDateTime new_enddate = LocalDateTime.MAX;
+            for (TaskPlan t : this.taskplans) {
+                if (t.intersects(valid_DateRange) && t.getStart().isBefore(new_enddate)) {
+                    intersects = true;
+                    new_enddate = t.getStart();
+                }
+            }
+            if (intersects) {
+                if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+                    System.out.println("Searching for daterange earlier than: " + enddate);
+                    System.out.println("Intersection of valid daterange: " + valid_DateRange);
+                    System.out.println("Looking now to end before: " + new_enddate);
+                }
+                valid_DateRange = queryEndBefore(new_enddate, baseLT, p);
+            }
         }
 
         return valid_DateRange;
@@ -123,10 +147,35 @@ public class Workcenter {
 
         boolean capacity_constrained = Boolean.parseBoolean(p.getPlanParams().getParam("RESOURCE_CONSTRAINED"));
 
-        if (!capacity_constrained) {
-            valid_DateRange = CalendarUtils.calcStartAfter(efficiency_calendar, startdate, baseLT);
-        }
-        else {
+        valid_DateRange = CalendarUtils.calcStartAfter(efficiency_calendar, startdate, baseLT);
+
+        // If capacity constrained, make sure that there is no interesection with other taskplans
+        // planned on this resource
+        //
+        if (capacity_constrained) {
+            // If calendar is unable to find a valid date-range after start date; then we need to look backwards
+            if (valid_DateRange.getStart().isBefore(startdate)) {
+                return queryEndBefore(valid_DateRange.getEnd(), baseLT, p);
+            }
+
+            // Calendar was able to find a valid date-range after start date
+            // Now check if valid_DateRange is available and if not, look later
+            boolean intersects = false;
+            LocalDateTime new_startdate = LocalDateTime.MIN;
+            for (TaskPlan t : this.taskplans) {
+                if (t.intersects(valid_DateRange) && t.getEnd().isAfter(new_startdate)) {
+                    intersects = true;
+                    new_startdate = t.getEnd();
+                }
+            }
+            if (intersects) {
+                if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+                    System.out.println("Searching for daterange later than: " + startdate);
+                    System.out.println("Intersection with valid daterange: " + valid_DateRange);
+                    System.out.println("Looking now to start after: " + new_startdate);
+                }
+                valid_DateRange = queryStartAfter(new_startdate, baseLT, p);
+            }
         }
 
         return valid_DateRange;
