@@ -487,12 +487,11 @@ public class JobShop {
         }
 
         System.out.println("\nDemands:");
-        List<String> sdmds = this.demands.keySet()
+        List<Demand> sdmds = this.demands.values()
                                 .stream()
-                                .sorted()
+                                .sorted(Comparator.comparing(Demand::getPriority))
                                 .collect(Collectors.toList());
-        for (String d : sdmds) {
-            Demand dmd = this.demands.get(d);
+        for (Demand dmd : sdmds) {
             System.out.println(dmd);
         }
 
