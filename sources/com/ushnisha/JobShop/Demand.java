@@ -151,6 +151,7 @@ public class Demand {
      */
     public String toString() {
         return this.sku + "-" + this.id + 
+               "; Priority: " + this.priority +
                "; Due: " + this.dueqty + " on " + this.duedate + 
                "; Planned: " + this.planqty + " on " + this.plandate;
     }
