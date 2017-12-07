@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 
+import static com.ushnisha.JobShop.JobShop.DEBUG_LEVELS;
+import static com.ushnisha.JobShop.JobShop.DEBUG;
+
 /**
  * A class the represents customer demand.
  */
@@ -121,6 +124,11 @@ public class Demand {
      * Ask the demand to go plan itself and then compute its planned date/quantity
      */
     public void plan() {
+
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+            System.out.println("Planning for demand: " + this.id);
+        }
+
         Request req = new Request(this.id, this.dueqty, this.duedate, this.plan);
         Promise promise = this.sku.getDeliveryTask().request(req);
         this.delivery_taskplans = promise.getTaskPlans();

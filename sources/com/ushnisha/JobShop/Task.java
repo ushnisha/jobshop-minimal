@@ -182,13 +182,17 @@ public class Task {
             res_DateRange = this.workcenter.queryEndBefore(enddate, baseLT, p);
         }
         else {
-            for (Integer i : this.workcenters.keySet()) {
+            List<Integer> wkeys = this.workcenters.keySet().stream()
+                                    .sorted()
+                                    .collect(Collectors.toList());
+
+            for (Integer i : wkeys) {
                 Workcenter w = this.workcenters.get(i);
                 DateRange dr = w.queryEndBefore(enddate, baseLT, p);
-                if (dr.getEnd().compareTo(res_DateRange.getEnd()) <= 0) {
+                if (dr.getEnd().compareTo(res_DateRange.getEnd()) < 0) {
                     res_DateRange = dr;
+                    this.workcenter = w;
                     if (res_DateRange.getEnd().compareTo(enddate) <= 0) {
-                        this.workcenter = w;
                         return res_DateRange;
                     }
                 }
@@ -225,13 +229,17 @@ public class Task {
             res_DateRange = this.workcenter.queryStartAfter(startdate, baseLT, p);
         }
         else {
-            for (Integer i : this.workcenters.keySet()) {
+            List<Integer> wkeys = this.workcenters.keySet().stream()
+                                    .sorted()
+                                    .collect(Collectors.toList());
+
+            for (Integer i : wkeys) {
                 Workcenter w = this.workcenters.get(i);
                 DateRange dr = w.queryStartAfter(startdate, baseLT, p);
-                if (dr.getStart().compareTo(res_DateRange.getStart()) >= 0) {
+                if (dr.getStart().compareTo(res_DateRange.getStart()) > 0) {
                     res_DateRange = dr;
+                    this.workcenter = w;
                     if (res_DateRange.getStart().compareTo(startdate) >= 0) {
-                        this.workcenter = w;
                         return res_DateRange;
                     }
                 }
