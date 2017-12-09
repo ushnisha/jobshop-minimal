@@ -18,14 +18,14 @@ More details will be added to this README and to the project Wiki soon.
 
 ## Installation:
 
-### Prerequisites:
+#### Prerequisites:
 
 * JDK 8 (Oracle JDK or OpenJDK)
 * Linux/MacOS environment which come with make and other utilities
 * Windows users can download cygwin and modify the Makefile suitably
   although it is recommended that they use a Linux virtual machine
 
-###Compiling:
+#### Compiling:
 
 * Download a zip of the repository and unpack, or clone the repository.
 * Open a terminal and cd into the root directory of the repository.
@@ -34,9 +34,9 @@ More details will be added to this README and to the project Wiki soon.
 ## Usage:
 
 * Open a terminal and cd into the root directory of the repository.
-* Run the command: **_ `java -jar bin/JobShop.jar -d <path to data directory>` _**
+* Run the command: ** `java -jar bin/JobShop.jar -d <path to data directory>` **
 
-###Tips:
+#### Tips:
 
 * Sample datasets are available in the "tests/testXXXX" directories
 
