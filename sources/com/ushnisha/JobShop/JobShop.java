@@ -183,9 +183,7 @@ public class JobShop {
             }
             String[] parts = p.split(",");
             Plan plan = plans.get(parts[0]);
-            PlanParams pp = new PlanParams(plan);
-            plan.setPlanParams(pp);
-            pp.setParam(parts[1], parts[2]);
+            plan.setParam(parts[1], parts[2]);
         }
     }
 
@@ -481,6 +479,7 @@ public class JobShop {
                                 .stream()
                                 .sorted()
                                 .collect(Collectors.toList());
+
         for (String p : splans) {
             Plan plan = this.plans.get(p);
             System.out.println(plan);

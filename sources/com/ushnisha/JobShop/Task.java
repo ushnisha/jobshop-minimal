@@ -172,7 +172,7 @@ public class Task {
 
         long baseLT = getBaseLT(qty);
         DateRange res_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
-        boolean capacity_constrained = Boolean.parseBoolean(p.getPlanParams().getParam("RESOURCE_CONSTRAINED"));
+        boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
         if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
 			System.out.println("Task: " + this.taskNum + "; querying workcenter for END ON OR BEFORE enddate");
@@ -219,7 +219,7 @@ public class Task {
 
         long baseLT = getBaseLT(qty);
         DateRange res_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
-        boolean capacity_constrained = Boolean.parseBoolean(p.getPlanParams().getParam("RESOURCE_CONSTRAINED"));
+        boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
         if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
 			System.out.println("Task: " + this.taskNum + "; querying workcenter for START ON OR AFTER startdate");

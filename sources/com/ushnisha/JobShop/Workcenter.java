@@ -96,7 +96,7 @@ public class Workcenter {
 
         DateRange valid_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
 
-        boolean capacity_constrained = Boolean.parseBoolean(p.getPlanParams().getParam("RESOURCE_CONSTRAINED"));
+        boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
         valid_DateRange = CalendarUtils.calcEndBefore(efficiency_calendar, enddate, baseLT);
 
@@ -145,7 +145,7 @@ public class Workcenter {
 
         DateRange valid_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
 
-        boolean capacity_constrained = Boolean.parseBoolean(p.getPlanParams().getParam("RESOURCE_CONSTRAINED"));
+        boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
         valid_DateRange = CalendarUtils.calcStartAfter(efficiency_calendar, startdate, baseLT);
 

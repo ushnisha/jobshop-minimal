@@ -1,5 +1,7 @@
 package com.ushnisha.JobShop;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.time.LocalDateTime;
 
 /** A class that represents a Plan.  The plan has a unique name and
@@ -12,7 +14,7 @@ public class Plan {
     private String id;
     private LocalDateTime start;
     private LocalDateTime end;
-    private PlanParams params;
+    private Map<String, String> params;
 
     /**
      * Constructor that creates a Plan object with a unique ID and
@@ -25,22 +27,27 @@ public class Plan {
         this.id = id;
         this.start = st;
         this.end = en;
+        this.params = new HashMap<String, String>();
+    }
+
+
+    /**
+     * Returns the value of a specific planning parameter, given its name
+     * @param key String representing the name of the planning parameter
+     * @return String representing the value of the parameter representing the key
+     *         assumes that the key is a valid planning parameter name
+     */
+    public String getParam(String key) {
+        return this.params.get(key);
     }
 
     /**
-     * returns the plan parameters for this plan
-     * @return PlanParams representing the planning parameters for this plan
+     * Updates or creates a planning parameter name, value pair
+     * @param key String representing the name of the planning parameter
+     * @param value String representing the value of the planning parameter
      */
-    public PlanParams getPlanParams() {
-        return this.params;
-    }
-
-    /**
-     * Updates the planning parameters for this plan
-     * @param pp PlanParams object with the planning parameters for this plan
-     */
-    public void setPlanParams(PlanParams pp) {
-        this.params = pp;
+    public void setParam(String key, String value) {
+        this.params.put(key, value);
     }
 
     /**
@@ -73,6 +80,11 @@ public class Plan {
      * @return String value representing this plan
      */
     public String toString() {
-        return this.id + " [ " + this.start + " - " + this.end + " ]";
+        String planString = "";
+        planString +=  this.id + " [ " + this.start + " - " + this.end + " ]";
+        for (String key : this.params.keySet()) {
+            planString += "\n  " + key + ": " + this.params.get(key);
+        }
+        return planString;
     }
 }
