@@ -175,7 +175,7 @@ public class Task {
         boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
         if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-			System.out.println("Task: " + this.taskNum + "; querying workcenter for END ON OR BEFORE enddate");
+			System.out.println("Task: " + this.taskNum + "; querying workcenter for END ON OR BEFORE " + enddate);
 		}
         if (!capacity_constrained) {
             this.workcenter = this.workcenters.get(this.workcenters.firstKey());
@@ -222,7 +222,7 @@ public class Task {
         boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
         if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-			System.out.println("Task: " + this.taskNum + "; querying workcenter for START ON OR AFTER startdate");
+			System.out.println("Task: " + this.taskNum + "; querying workcenter for START ON OR AFTER " + startdate);
 		}
         if (!capacity_constrained) {
             this.workcenter = this.workcenters.get(this.workcenters.firstKey());
@@ -306,6 +306,10 @@ public class Task {
      */
     public Promise plan(Request req, DateRange dr) {
 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+			System.out.println("Planning Task: " + this.taskNum + " between " + dr.getStart() + " and " + dr.getEnd() + " on workcenter " + this.workcenter);
+		}
+
         TaskPlan tp = new TaskPlan(this, req.getPlan(), this.workcenter, dr.getStart(), dr.getEnd(), req.getQuantity(), req.getID());
         this.plans.add(tp);
         if (this.workcenter != null) {
@@ -354,6 +358,10 @@ public class Task {
             }
             res_dateRange = new DateRange(validStart, validEnd);
         }
+
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+			System.out.println("Planning Task: " + this.taskNum + " between " + res_dateRange.getStart() + " and " + res_dateRange.getEnd() + " on workcenter " + this.workcenter);
+		}
 
         TaskPlan tp = new TaskPlan(this, req.getPlan(), this.workcenter, res_dateRange.getStart(), res_dateRange.getEnd(), qty, req.getID());
         this.plans.add(tp);

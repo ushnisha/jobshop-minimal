@@ -98,6 +98,9 @@ public class Workcenter {
 
         boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+            System.out.println("Search for date ENDING ON ON BEFORE " + enddate + " on workcenter " + this.name);
+        }
         valid_DateRange = CalendarUtils.calcEndBefore(efficiency_calendar, enddate, baseLT);
 
         // If capacity constrained, make sure that there is no interesection with other taskplans
@@ -146,6 +149,10 @@ public class Workcenter {
         DateRange valid_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
 
         boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
+
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+            System.out.println("Search for date STARTING ON ON AFTER " + startdate + " on workcenter " + this.name);
+        }
 
         valid_DateRange = CalendarUtils.calcStartAfter(efficiency_calendar, startdate, baseLT);
 
