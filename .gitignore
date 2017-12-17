@@ -1,0 +1,14 @@
+*.db
+*.sqlite
+*.opt
+*.out
+*.jar
+*.class
+*.js
+*.css
+*.html
+package-list
+loaddb.py
+load_sequence.dat
+!tests/*.html
+!tests/*.css

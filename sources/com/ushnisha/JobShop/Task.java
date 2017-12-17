@@ -1,3 +1,16 @@
+/**
+ **********************************************************************
+   Copyright (c) 2017 Arun Kunchithapatham
+   All rights reserved.  This program and the accompanying materials
+   are made available under the terms of the GNU AGPL v3.0
+   which accompanies this distribution, and is available at
+   https://www.gnu.org/licenses/agpl-3.0.en.html
+   Contributors:
+   Arun Kunchithapatham - Initial Contribution
+ ***********************************************************************
+ *
+ */
+
 package com.ushnisha.JobShop;
 
 import java.time.LocalDateTime;
@@ -20,6 +33,7 @@ import static com.ushnisha.JobShop.JobShop.DEBUG;
 public class Task {
 
     private String taskNum;
+    private String taskid;
     private SKU sku;
     private Task pred;
     private Task succ;
@@ -34,7 +48,7 @@ public class Task {
 
     /**
      * Constructor for the task
-     * @param n String representing the unique name of the task
+     * @param id String representing the id/step of this task
      * @param s SKU representing the SKU for which this task is being
      *          planned
      * @param sut long value representing the setup time in minutes
@@ -46,16 +60,17 @@ public class Task {
      * @param maxls long value representing the maximum lot size for
      *              a TaskPlan of this task
      */
-    public Task(String n, SKU s, long sut, long tp,
+    public Task(String id, SKU s, long sut, long tp,
                 long minls, long maxls) {
 
-        this.taskNum = n;
+        this.taskid = id;
         this.sku = s;
         this.setup_time = sut;
         this.time_per = tp;
         this.min_lot_size = minls;
         this.max_lot_size = maxls;
 
+        this.taskNum = this.sku.getName() + "-" + this.taskid;
         this.level = 0;
         this.workcenter = null;
         this.workcenters = new TreeMap<Integer, Workcenter>();
@@ -381,6 +396,22 @@ public class Task {
      */
     public String getTaskNumber() {
         return this.taskNum;
+    }
+
+    /**
+     * Returns the id/step for this task
+     * @return String representing the id/step of this Task
+     */
+    public String getTaskID() {
+        return this.taskid;
+    }
+
+    /**
+     * Returns the SKU corresponding to this task
+     * @return SKU representing the SKU for which this Task is planned
+     */
+    public SKU getSKU() {
+        return this.sku;
     }
 
     /**

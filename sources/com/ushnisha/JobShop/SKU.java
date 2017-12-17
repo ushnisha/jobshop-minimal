@@ -1,3 +1,16 @@
+/**
+ **********************************************************************
+   Copyright (c) 2017 Arun Kunchithapatham
+   All rights reserved.  This program and the accompanying materials
+   are made available under the terms of the GNU AGPL v3.0
+   which accompanies this distribution, and is available at
+   https://www.gnu.org/licenses/agpl-3.0.en.html
+   Contributors:
+   Arun Kunchithapatham - Initial Contribution
+ ***********************************************************************
+ *
+ */
+
 package com.ushnisha.JobShop;
 
 /** A class that represents a SKU (stock keeping unit).  Demand is placed
@@ -35,6 +48,14 @@ public class SKU {
      */
     public Task getDeliveryTask() {
         return this.delivery_task;
+    }
+
+    /**
+     * Returns the name of this SKU
+     * @return String that is the name of this SKU
+     */
+    public String getName() {
+        return this.name;
     }
 
     /**

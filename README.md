@@ -34,7 +34,8 @@ More details will be added to this README and to the project Wiki soon.
 ## Usage:
 
 * Open a terminal and cd into the root directory of the repository.
-* Run the command: ** `java -jar bin/JobShop.jar -d <path to data directory>` **
+* Run the command: `java -jar bin/JobShop.jar <path to option file>`
+* Please check the Wiki page at: https://github.com/ushnisha/jobshop-minimal/wiki/Configuring-the-Options-File
 
 #### Tips:
 

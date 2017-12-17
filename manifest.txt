@@ -1,2 +1,3 @@
 Main-Class: com.ushnisha.JobShop.JobShop
+Class-Path: sqlite-jdbc-3.16.1.jar
 
