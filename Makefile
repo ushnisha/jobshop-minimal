@@ -18,7 +18,7 @@ dirs:
 	( test -d $(ROOT)/$(DEST) || mkdir -p $(ROOT)/$(DEST)/$(PKG) ) && \
 	( test -d $(ROOT)/$(LIB) || mkdir -p $(ROOT)/$(LIB) ) && \
 	( test -d $(ROOT)/$(DOCS) || mkdir -p $(ROOT)/$(DOCS) ) && \
-	( test -d $(ROOT)/$(TEST)/output || mkdir $(ROOT)/$(TEST)/output ) && \
+	( test -d $(ROOT)/$(TEST)/outputs || mkdir $(ROOT)/$(TEST)/outputs ) && \
 	( test -d $(ROOT)/data || mkdir -p $(ROOT)/data )
 
 build: dirs
