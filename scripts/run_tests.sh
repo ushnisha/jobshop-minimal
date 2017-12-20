@@ -1,5 +1,16 @@
 #!/bin/sh
 
+###############################################################################
+# Copyright (c) 2017 Arun Kunchithapatham                                     #
+# All rights reserved.  This program and the accompanying materials           #
+# are made available under the terms of the GNU AGPL v3.0                     #
+# which accompanies this distribution, and is available at                    #
+# https://www.gnu.org/licenses/agpl-3.0.en.html                               #
+# Contributors:                                                               #
+# Arun Kunchithapatham - Initial Contribution                                 #
+###############################################################################
+
+
 TESTNAME=$1
 TESTDIR=$2
 LIBDIR=$3

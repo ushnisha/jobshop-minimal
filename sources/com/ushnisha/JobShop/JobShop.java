@@ -605,8 +605,8 @@ public class JobShop {
                 ResultSet rs = statement.executeQuery("select * from demand");
                 while (rs.next()) {
                     String result = rs.getString("planid") + "," +
-                                    rs.getString("customerid") + "," +
                                     rs.getString("demandid") + "," +
+                                    rs.getString("customerid") + "," +
                                     rs.getString("skuid") + "," +
                                     rs.getString("duedate") + "," +
                                     rs.getString("duequantity") + "," +
@@ -632,11 +632,11 @@ public class JobShop {
             SKU sku = skus.get(parts[3]);
             assert(sku != null);
 
-            Demand dmd = new Demand(parts[2], parts[1], sku,
+            Demand dmd = new Demand(parts[1], parts[2], sku,
                                     LocalDateTime.parse(parts[4]),
                                     Long.parseLong(parts[5]),
                                     Long.parseLong(parts[6]), plan);
-            demands.put(parts[2], dmd);
+            demands.put(parts[1], dmd);
         }
     }
 

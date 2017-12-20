@@ -11,63 +11,57 @@
  *
  */
 
-drop table if exists plan;
-create table plan (
+drop table if exists _plan_staging;
+create table _plan_staging (
     planid varchar(100) primary key not null,
     planstart datetime not null,
-    planend datetime not null,
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP
+    planend datetime not null
 );
 
-drop table if exists planparameter;
-create table planparameter (
+drop table if exists _planparameter_staging;
+create table _planparameter_staging (
     planid varchar(100) not null,
     paramname varchar(100) not null,
     paramvalue varchar(100) not null,
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP,
     primary key(planid, paramname),
-    foreign key(planid) references plan(planid)
+    foreign key(planid) references _plan_staging(planid)
 );
 
-drop table if exists sku;
-create table sku (
+drop table if exists _sku_staging;
+create table _sku_staging (
     skuid varchar(100) primary key not null,
-    description varchar(100) not null,
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP
+    description varchar(100) not null
 );
 
-drop table if exists calendar;
-create table calendar (
+drop table if exists _calendar_staging;
+create table _calendar_staging (
     calendarid varchar(100) primary key not null,
-    calendartype varchar(40) not null,
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP
+    calendartype varchar(40) not null
 );
 
-drop table if exists calendarshift;
-create table calendarshift (
+drop table if exists _calendarshift_staging;
+create table _calendarshift_staging (
     calendarid varchar(100) not null,
     shiftid integer not null,
     shiftstart datetime not null,
     shiftend datetime not null,
     shiftnumber integer not null,
     value number not null,
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP,
     primary key(calendarid, shiftid),
-    foreign key(calendarid) references calendar(calendarid)
+    foreign key(calendarid) references _calendar_staging(calendarid)
 );
 
-drop table if exists workcenter;
-create table workcenter (
+drop table if exists _workcenter_staging;
+create table _workcenter_staging (
     workcenterid varchar(100) primary key not null,
     efficiency_calendar varchar(100) not null,
     max_setups_per_shift integer not null,
     criticality_index integer not null,
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP,
-    foreign key(efficiency_calendar) references calendar(calendarid)
+    foreign key(efficiency_calendar) references _calendar_staging(calendarid)
 );
 
-drop table if exists task;
-create table task (
+drop table if exists _task_staging;
+create table _task_staging (
     taskid varchar(100) not null,
     skuid varchar(100) not null,
     setup_time integer not null,
@@ -75,36 +69,33 @@ create table task (
     min_lot_size integer not null,
     max_lot_size integer not null,
     is_delivery_task boolean not null,
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP,
     primary key(taskid, skuid),
-    foreign key(skuid) references sku(skuid)
+    foreign key(skuid) references _sku_staging(skuid)
 );
 
-drop table if exists taskprecedence;
-create table taskprecedence (
+drop table if exists _taskprecedence_staging;
+create table _taskprecedence_staging (
     taskid varchar(100) not null,
     skuid varchar(100) not null,
     predecessor varchar(100) not null,
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP,
     primary key(taskid, skuid, predecessor),
-    foreign key(taskid, skuid) references task(taskid, skuid),
-    foreign key(predecessor, skuid) references task(taskid, skuid)
+    foreign key(taskid, skuid) references _task_staging(taskid, skuid),
+    foreign key(predecessor, skuid) references _task_staging(taskid, skuid)
 );
 
-drop table if exists taskworkcenterassn;
-create table taskworkcenterassn (
+drop table if exists _taskworkcenterassn_staging;
+create table _taskworkcenterassn_staging (
     taskid varchar(100) not null,
     skuid varchar(100) not null,
     workcenterid varchar(100) not null,
     priority integer not null,
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP,
     primary key(taskid, skuid, workcenterid),
-    foreign key(taskid, skuid) references task(taskid, skuid),
-    foreign key(workcenterid) references workcenter(workcenterid)
+    foreign key(taskid, skuid) references _task_staging(taskid, skuid),
+    foreign key(workcenterid) references _workcenter_staging(workcenterid)
 );
 
-drop table if exists demand;
-create table demand (
+drop table if exists _demand_staging;
+create table _demand_staging (
     planid varchar(100) not null,
     demandid varchar(100) not null,
     customerid varchar(100) not null,
@@ -112,14 +103,13 @@ create table demand (
     duedate datetime not null,
     duequantity integer not null,
     priority integer not null,
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP,
     primary key(planid, demandid),
-    foreign key(planid) references plan(planid),
-    foreign key(skuid) references sku(skuid)
+    foreign key(planid) references _plan_staging(planid),
+    foreign key(skuid) references _sku_staging(skuid)
 );
 
-drop table if exists taskplan;
-create table taskplan (
+drop table if exists _taskplan_staging;
+create table _taskplan_staging (
     lotid integer primary key autoincrement,
     planid varchar(100) not null,
     demandid varchar(100) not null,
@@ -129,9 +119,8 @@ create table taskplan (
     enddate datetime not null,
     quantity integer not null,
     workcenterid varchar(100),
-    date_created datetime not null DEFAULT CURRENT_TIMESTAMP,
-    foreign key(planid, demandid) references demand(planid, demandid),
-    foreign key(skuid, taskid) references task(skuid, taskid),
-    foreign key(workcenterid) references workcenter(workcenterid)
+    foreign key(planid, demandid) references _demand_staging(planid, demandid),
+    foreign key(skuid, taskid) references _task_staging(skuid, taskid),
+    foreign key(workcenterid) references _workcenter_staging(workcenterid)
 );
 
