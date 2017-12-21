@@ -1,0 +1,11 @@
+plan
+planparameter
+sku
+calendar
+calendarshift
+workcenter
+task
+taskprecedence
+taskworkcenterassn
+demand
+taskplan
