@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+      <title>JobShop Planner: Test Plan 0006</title>
+      <link rel="stylesheet" type="text/css" href="jobshop.css" />
+  </head>
+
+  <body>
+    <div class="main_container">
+
+       <h3>Test 0006:</h3>
+         <ul>
+           <li>This test has the two demands, one for each part, both due 
+               on 2018-01-08, and both for 270 units.
+
+           <li>The demand for PART001 has a priority of 1, while the demand 
+               for PART002 has a priority of 2. That is, the demand for 
+               PART001 has a higher priority and is planned first. 
+
+           <li>The RESOURCE_CONSTRAINED planning parameter is set to FALSE. 
+         </ul>
+
+         <h3>Variations from the Base Scenario:</h3>
+         <ul>
+             <li>The demand has been moved in by 6 days, compared to test0001.
+                 They are now due on 2018-01-08 rather than 2018-01-14.
+         </ul>
+
+         <h3>The expected result is as follows:</h3>
+
+         <ul>
+           <li>Both demands are satisfied late - they are fulfilled on
+               2018-01-10 - 2 days late.
+
+           <li>We schedule OP-10 and OP-20 for both parts at the same time 
+               on the same workcenters (resulting in workcenter overloads).
+
+           <li>The earliest possible start date for OP10 is 2018-01-01 (which
+               is the start of the planning horizon).  Consequently, the earliest
+               possible start date for OP20 is 2018-01-02.  And the SHIP task can
+               start at the earliest on 2018-01-03 and end on 2018-01-10.
+
+           <li>The point to note through this test is that the start of the planning
+               horizon (2018-01-01 in this case) is a "hard constraint".  That is,
+               under no circumstances will the solver create a taskplan that starts
+               prior to the start of the planning horizon.
+
+           <li>It must be noted at this time, that there is no such constraint on the
+               end of the planning horizon.  That is, it is possible that the solver
+               can schedule a task to start (or end) after the end of the planning
+               horizon.  This just means that there is insufficient workcenter
+               availability to plan the tasks within the planning horizon.
+
+           <li>One of the implications of the above two points is that it is
+               necessary for the users of this application to create a sufficiently
+               long planning horizon and to ensure that the workcenters have sufficient
+               working capacity to schedule all of the demand within the planning horizon.
+
+           <li>There is an implicit assumption that all demand will always be planned
+               and plannable within the planning horizon - demand will not be shorted.
+
+           <li>If the data is such that it is not possible to schedule all demand within
+               the planning horizon (or at least at some point in time) then the
+               behavior of the solver is not defined.  It may go into an infinite loop
+               searching for workcenter availability.
+         </ul>
+
+         <pre>
+<strong>Demands:</strong>
+PART001-DMD001; Priority: 1; Due: 270 on 2018-01-08T00:00; Planned: 270 on 2018-01-10T00:00
+PART002-DMD002; Priority: 2; Due: 270 on 2018-01-08T00:00; Planned: 270 on 2018-01-10T00:00
+
+<strong>TaskPlans:</strong>
+PART001-OP10 [ 2018-01-01T00:00 - 2018-01-02T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+PART001-OP20 [ 2018-01-02T00:00 - 2018-01-03T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
+PART001-SHIP [ 2018-01-03T00:00 - 2018-01-10T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: null
+PART002-OP10 [ 2018-01-01T00:00 - 2018-01-02T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES001
+PART002-OP20 [ 2018-01-02T00:00 - 2018-01-03T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+PART002-SHIP [ 2018-01-03T00:00 - 2018-01-10T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: null
+
+<strong>WorkcenterPlans:</strong>
+RES001
+ - PART001-OP10 [ 2018-01-01T00:00 - 2018-01-02T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+ - PART002-OP10 [ 2018-01-01T00:00 - 2018-01-02T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES001
+RES002
+RES003
+ - PART001-OP20 [ 2018-01-02T00:00 - 2018-01-03T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
+ - PART002-OP20 [ 2018-01-02T00:00 - 2018-01-03T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+         </pre>
+
+    </div>
+
+  </body>
+
+</html>

@@ -1,0 +1,16 @@
+div.main_container
+{ 
+  margin:0 auto; 
+  padding:10px;
+  margin-left:300px;
+  width:800px;
+  font-family:Univers,Scala,Georgia,Verdana,Times,Helvetica; 
+  font-size: 1.2em;
+  text-align:justify;
+  line-height:160%;  
+}
+
+ul
+{
+  line-height:200%;
+}

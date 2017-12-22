@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+      <title>JobShop Planner: Test Plan 0009</title>
+      <link rel="stylesheet" type="text/css" href="jobshop.css" />
+  </head>
+
+  <body>
+    <div class="main_container">
+
+       <h3>Test 0009:</h3>
+         <ul>
+           <li>This test has the two demands, one for each part, both due 
+               on 2018-01-09, and both for 270 units.
+
+           <li>The demand for PART001 has a priority of 1, while the demand 
+               for PART002 has a priority of 2. That is, the demand for 
+               PART001 has a higher priority and is planned first. 
+
+           <li>The RESOURCE_CONSTRAINED planning parameter is set to FALSE. 
+         </ul>
+
+         <h3>Variations from the Base Scenario:</h3>
+         <ul>
+             <li>The demand has been moved in by 5 days, compared to test0001.
+                 They are now due on 2018-01-09 rather than 2018-01-14.
+
+             <li>Holidays are introduced on New Years Day, All Sundays, and all
+                 Second Saturdays.  In this test case, the relevant dates are:
+                 2018-01-01, 2018-01-07, 2018-01-13, 2018-01-14.
+
+             <li>All other working days now have 50% efficiency.
+
+             <li>In effect, this is test0008 + reduced efficiency of workcenters.
+         </ul>
+
+         <h3>The expected result is as follows:</h3>
+
+         <ul>
+           <li>Both demands are satisfied late - they are fulfilled on
+               2018-01-13 - 4 day late.
+
+           <li>We schedule OP-10 and OP-20 for both parts at the same time 
+               on the same workcenters (resulting in workcenter overloads).
+
+           <li>The earliest possible start date for OP10 is 2018-01-02. Note
+               that OP10 can no longer start on 2018-01-01 which is a holiday.
+               
+           <li>Note that since we are at 50% workcenter efficiency on the working
+               days, OP10 now takes 2 days to complete. Consequently, the earliest
+               starting date for OP20 is 2018-01-04.  OP20 also takes 2 days to
+               complete.  Therefore, the SHIP task can start at the earliest on 
+               2018-01-06 and end on 2018-01-13.
+
+             <li>This test builds on test0007 and test0008 to show the combined 
+                 effects of the planning horizon, holidays and workcenter efficiency
+                 that together result in delay of demand.
+         </ul>
+
+         <pre>
+<strong>Demands:</strong>
+PART001-DMD001; Priority: 1; Due: 270 on 2018-01-09T00:00; Planned: 270 on 2018-01-13T00:00
+PART002-DMD002; Priority: 2; Due: 270 on 2018-01-09T00:00; Planned: 270 on 2018-01-13T00:00
+
+<strong>TaskPlans:</strong>
+PART001-OP10 [ 2018-01-02T00:00 - 2018-01-04T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+PART001-OP20 [ 2018-01-04T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
+PART001-SHIP [ 2018-01-06T00:00 - 2018-01-13T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: null
+PART002-OP10 [ 2018-01-02T00:00 - 2018-01-04T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES001
+PART002-OP20 [ 2018-01-04T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+PART002-SHIP [ 2018-01-06T00:00 - 2018-01-13T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: null
+
+<strong>WorkcenterPlans:</strong>
+RES001
+ - PART001-OP10 [ 2018-01-02T00:00 - 2018-01-04T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+ - PART002-OP10 [ 2018-01-02T00:00 - 2018-01-04T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES001
+RES002
+RES003
+ - PART001-OP20 [ 2018-01-04T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
+ - PART002-OP20 [ 2018-01-04T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+         </pre>
+
+    </div>
+
+  </body>
+
+</html>

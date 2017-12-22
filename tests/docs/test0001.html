@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+      <title>JobShop Planner: Test Plan 0001</title>
+      <link rel="stylesheet" type="text/css" href="jobshop.css" />
+  </head>
+
+  <body>
+    <div class="main_container">
+
+       <h3>Test 0001:</h3>
+         <ul>
+           <li>This test has the two demands, one for each part, both due 
+               on 2018-01-14, and both for 270 units (base scenario data 
+               without any changes).
+
+
+           <li>The demand for PART001 has a priority of 1, while the demand 
+               for PART002 has a priority of 2. That is, the demand for 
+               PART001 has a higher priority and is planned first. 
+               We will see the effect of this in future test plans.
+
+           <li>The RESOURCE_CONSTRAINED planning parameter is set to FALSE. 
+               This means that while workcenter holidays, non-working shifts, 
+               and efficiency is taken into considerations, it is possible 
+               for the solver to schedule two taskplans at the exact same time 
+               (or overlap) on the same Workcenter. This is an infeasible plan, 
+               but is useful in many scenarios where we want to see the 
+               "JUST IN TIME" plan ignoring all workcenter constraints 
+               (or assuming infinite capacity).
+         </ul>
+
+       <h3>Variations from the Base Scenario:</h3>
+         <ul>
+           <li>None
+         </ul>
+
+         <h3>The expected result is as follows:</h3>
+
+         <ul>
+           <li>Both demands are satisfied on time
+
+           <li>We schedule OP-10 and OP-20 for both parts at the same time 
+               on the same workcenters (resulting in workcenter overloads).
+
+           <li>Please take some time to go over the following output lines that 
+               are printed out. Study the format carefully and understand the 
+               different pieces of information that are available to you.
+
+           <li>Demand related data has the priority, due quantity and due date, 
+               as well as the planned quantity and planned date.
+
+           <li>TaskPlans have the start/end dates of the TaskPlan; the quantity 
+               planned, the demand ID for which the TaskPlan is created; 
+               the Plan model under which it is planned; and finally, 
+               the Workcenter that it loads (if any).
+
+           <li>Note that while PART001-OP10 and PART002-OP10 load RES001, and 
+               PART001-OP20 and PART002-OP20 load RES003, the SHIP operations 
+               do not load any Workcenter (depicted as loading "null").
+
+           <li>The Workcenter Plans view of the TaskPlans splits out the 
+               different TaskPlans by the Workcenters that they load. 
+               As a result we (1) Don't see the SHIP Tasks in this view; 
+               and (2) We can observe that RES002 is not loaded.
+         </ul>
+
+         The output format may be a little strange/difficult to read and get 
+         used to, but once you familiarize yourself with it, following through 
+         the different test variations and understanding how the planning 
+         algorithm accounts for different constraints becomes very easy to 
+         follow/understand.
+
+         <pre>
+<strong>Demands:</strong>
+PART001-DMD001; Priority: 1; Due: 270 on 2018-01-14T00:00; Planned: 270 on 2018-01-14T00:00
+PART002-DMD002; Priority: 2; Due: 270 on 2018-01-14T00:00; Planned: 270 on 2018-01-14T00:00
+
+<strong>TaskPlans:</strong>
+PART001-OP10 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+PART001-OP20 [ 2018-01-06T00:00 - 2018-01-07T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
+PART001-SHIP [ 2018-01-07T00:00 - 2018-01-14T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: null
+PART002-OP10 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES001
+PART002-OP20 [ 2018-01-06T00:00 - 2018-01-07T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+PART002-SHIP [ 2018-01-07T00:00 - 2018-01-14T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: null
+
+<strong>WorkcenterPlans:</strong>
+RES001
+  - PART001-OP10 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+  - PART002-OP10 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES001
+RES002
+RES003
+  - PART001-OP20 [ 2018-01-06T00:00 - 2018-01-07T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
+  - PART002-OP20 [ 2018-01-06T00:00 - 2018-01-07T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+         </pre>
+
+    </div>
+
+  </body>
+
+</html>

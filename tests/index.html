@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+      <title>JobShop Planner: Test Plan Documentation</title>
+      <link rel="stylesheet" type="text/css" href="docs/jobshop.css" />
+  </head>
+
+  <body>
+    <div class="main_container">
+      Since we plan a large number of test plans for regression testing, 
+      this page will describe multiple "Base Models" that define a 
+      JobShop and then modify the "Base Model" with minor 
+      changes and detail how the output plan will also change based on 
+      these changes to the "Base Model".
+
+
+      <h2>Base Model 001 Schematic Diagram:</h2>
+
+      <img src="docs/base_model_001.png" alt="Base Model 001"/>
+
+     <ul>     
+       <li>We have two SKU's, PART001 and PART002 which are made through a three 
+           step routing.
+
+       <li>The three steps (Tasks) are OP-10 and OP-20 and SHIP.
+
+       <li>The OP-10 step for both parts load Workcenter RES001 as the primary 
+           Workcenter; but they can also use RES002 if the primary workcenter 
+           is not available.
+
+       <li>The OP-20 step for both parts load Workcenter RES003. There are no 
+           alternate Workcenters available for this step.
+
+       <li>The SHIP step for both parts does not load any workceter and 
+           typically has a fixed setup_time alone (no per unit time).
+     </ul>
+
+     <h2>Base Scenario Data:</h2>
+
+       <ul>
+         <li>The planning horizon stretches from 2018-01-01 to 2018-02-01
+
+         <li>All the Workcenters share the same efficiency calendar; which 
+             has 3 shifts a day and all shifts are working/available with 
+             efficiency set to 100%.
+
+         <li>The setup time for OP-10 and OP-20 for both parts are 90 minutes 
+             each; and the per unit cycle time for OP-10 and OP-20 for both 
+             parts are 5 minutes each. The final shipment/delivery tasks are 
+             7 days long for both parts.
+
+         <li>Demand is set to 270 units for both parts. This is for ease of 
+             calculation and debugging the planning results. For 270 units, 
+             we have both OP-10 and OP-20 take a standard time of 
+             90 + 270*5 = 1440 minutes = 1 day for both parts.
+
+         <li>As a result, barring holidays and efficiency related delays, 
+             it will take us a total lead time of 9 days 
+             (7 days shipping + 1 day OP-20 + 1 day OP-10) 
+             to manufacture and satisfy either demand.
+       </ul>
+
+       Now, we are ready to look at specific test cases that make incremental
+       modifications to the Base Model to understand how the application
+       creates suitable plans.
+
+       <em>You are strongly advised to go through these tests in order since
+           they are usually structured to build upon one another in increasing
+           order of complexity.  We can see how the solver behavior might (or
+           might not) change as we make changes to the input data.</em>
+
+       <ul>
+           <li><a href="./docs/test0001.html">Test 0001</a></li>
+           <li><a href="./docs/test0002.html">Test 0002</a></li>
+           <li><a href="./docs/test0003.html">Test 0003</a></li>
+           <li><a href="./docs/test0004.html">Test 0004</a></li>
+           <li><a href="./docs/test0005.html">Test 0005</a></li>
+           <li><a href="./docs/test0006.html">Test 0006</a></li>
+           <li><a href="./docs/test0007.html">Test 0007</a></li>
+           <li><a href="./docs/test0008.html">Test 0008</a></li>
+           <li><a href="./docs/test0009.html">Test 0009</a></li>
+           <li><a href="./docs/test0010.html">Test 0010</a></li>
+           <li><a href="./docs/test0011.html">Test 0011</a></li>
+           <li><a href="./docs/test0012.html">Test 0012</a></li>
+           <li><a href="./docs/test0013.html">Test 0013</a></li>
+       </ul>
+    </div>
+
+  </body>
+
+</html>

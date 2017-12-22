@@ -8,5 +8,5 @@
 *.css
 *.html
 package-list
-!tests/*.html
-!tests/*.css
+!tests/**/*.html
+!tests/**/*.css
