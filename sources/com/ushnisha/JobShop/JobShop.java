@@ -150,7 +150,7 @@ public class JobShop {
             if (p.charAt(0) == '#') {
                 continue;
             }
-            String[] parts = p.split(",");
+            String[] parts = p.split("=");
             assert(parts.length == 2);
             this.options.put(parts[0].trim(), parts[1].trim());
         }
