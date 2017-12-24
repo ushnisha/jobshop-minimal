@@ -20,8 +20,8 @@ then
     for tid in `find $TESTDIR -type d -name test0\* | sort`
         do
             tname=`basename $tid`
-            echo "input_mode=FLATFILE" > $TESTDIR/$tname/jobshop_options.opt
-            echo "datadir=$tid" >> $TESTDIR/$tname/jobshop_options.opt
+            echo "input_mode|FLATFILE" > $TESTDIR/$tname/jobshop_options.opt
+            echo "datadir|$tid" >> $TESTDIR/$tname/jobshop_options.opt
             java -jar $LIBDIR/JobShop.jar $TESTDIR/$tname/jobshop_options.opt > $TESTDIR/outputs/$tname.out
             diff $TESTDIR/outputs/$tname.out $TESTDIR/expects/$tname.expect > /dev/null
             if [ $? -eq 0 ]
@@ -32,8 +32,8 @@ then
             fi
         done
 else
-    echo "input_mode=FLATFILE" > $TESTDIR/$TESTNAME/jobshop_options.opt
-    echo "datadir=$TESTDIR/$TESTNAME" >> $TESTDIR/$TESTNAME/jobshop_options.opt
+    echo "input_mode|FLATFILE" > $TESTDIR/$TESTNAME/jobshop_options.opt
+    echo "datadir|$TESTDIR/$TESTNAME" >> $TESTDIR/$TESTNAME/jobshop_options.opt
     java -jar $LIBDIR/JobShop.jar $TESTDIR/$TESTNAME/jobshop_options.opt > $TESTDIR/outputs/$TESTNAME.out
     diff $TESTDIR/outputs/$TESTNAME.out $TESTDIR/expects/$TESTNAME.expect >/dev/null
     if [ $? -eq 0 ]
