@@ -13,9 +13,15 @@ import os.path
 import sqlite3
 import copy
 
+def usage():
+    print "Usage: python load_sqlite_db.py <load sequence filename> <path to dbfile> <path to dataset directory>"
+    print "For example: python load_sqlite_db.py scripts/load_sequence.txt db/jobshop.db tests/test0001"
+    exit(1)
+
 def emptydatabasetable (connection, tablename):
     stmt = "DELETE FROM " + tablename
     connection.execute(stmt)
+    connection.commit()
 
 
 def loaddatabase(connection, tablename, datafilename):
@@ -59,6 +65,13 @@ def loaddatabase(connection, tablename, datafilename):
 
 if __name__ == "__main__":
 
+    if len(sys.argv) != 4:
+        usage()
+    elif sys.argv[1] == "-h":
+        usage()
+    elif sys.argv[1] == "-help":
+        usage()
+
     loadfilename = sys.argv[1]
     sqlitedb = sys.argv[2]
     datadir = sys.argv[3]
@@ -89,3 +102,14 @@ if __name__ == "__main__":
         if os.path.isfile(datafilename):
             loaddatabase(connection, tablename, datafilename)
 
+    ## Finally update all the timestamp fields for JDBC driver compliant format
+    ##
+    stmt = [ "update plan set planstart=strftime('%Y-%m-%d %H:%M:%S.%f', planstart)",
+             "update plan set planend=strftime('%Y-%m-%d %H:%M:%S.%f', planend)",
+             "update calendarshift set shiftstart=strftime('%Y-%m-%d %H:%M:%S.%f', shiftstart)",
+             "update calendarshift set shiftend=strftime('%Y-%m-%d %H:%M:%S.%f', shiftend)",
+             "update demand set duedate=strftime('%Y-%m-%d %H:%M:%S.%f', duedate)" ]
+
+    for s in stmt:
+        connection.execute(s)
+        connection.commit()

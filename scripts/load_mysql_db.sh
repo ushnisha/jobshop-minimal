@@ -12,8 +12,8 @@
 
 usage()
 {
-  echo "Usage: $0 <root directory of project> <path to database file> <path to dataset directory>"
-  echo "For example: $0 . db/jobshop.db tests/test0001"
+  echo "Usage: $0 <root directory of project> <path to dataset directory> <path to option file>"
+  echo "For example: $0 . db/jobshop.db load_options.txt"
   exit 1
 }
 
@@ -26,18 +26,25 @@ elif [ "$1" = "-help" ]; then
 fi
 
 ROOTDIR=`realpath $1`
-DBFILELOC=`realpath $2`
-DATASETDIR=`realpath $3`
-STAGINGDIR=/tmp/staging
+DATASETDIR=`realpath $2`
+DBNAME=
+DBHOSTNAME=
+DBUSERNAME=
 
-test -d $STAGINGDIR || mkdir $STAGINGDIR
-
-for dfile in `find $DATASETDIR -type f -name \*.csv`
+while IFS=, read key value;
 do
-    bname=`basename $dfile`
-    tail -n +2 $dfile > $STAGINGDIR/$bname
-done
+   if [ "$key" = "DBNAME" ]; then
+     DBNAME=$value;
+   fi
 
-cd $STAGINGDIR
-sqlite3 $DBFILELOC < $ROOTDIR/db/jobshop_schema_staging_sqlite.ddl
-sqlite3 $DBFILELOC < $ROOTDIR/db/jobshop_sqlite_loader.sql
+   if [ "$key" = "DBHOSTNAME" ]; then
+     DBHOSTNAME=$value;
+   fi
+ 
+   if [ "$key" = "DBUSERNAME" ]; then
+     DBUSERNAME=$value;
+   fi
+done < $3
+
+cd $DATASETDIR
+mysql -h "$DBHOSTNAME" -u "$DBUSERNAME" -D "$DBNAME" -p < $ROOTDIR/db/jobshop_mysql_loader.sql 

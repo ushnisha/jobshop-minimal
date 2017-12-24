@@ -11,7 +11,7 @@
  *
  */
 
-drop table if exists plan;
+drop table if exists plan cascade;
 create table plan (
     planid varchar(100) primary key not null,
     planstart timestamp not null,
@@ -19,7 +19,7 @@ create table plan (
     date_created timestamp not null DEFAULT CURRENT_TIMESTAMP
 );
 
-drop table if exists planparameter;
+drop table if exists planparameter cascade;
 create table planparameter (
     planid varchar(100) not null,
     paramname varchar(100) not null,
@@ -29,34 +29,34 @@ create table planparameter (
     foreign key(planid) references plan(planid)
 );
 
-drop table if exists sku;
+drop table if exists sku cascade;
 create table sku (
     skuid varchar(100) primary key not null,
     description varchar(100) not null,
     date_created timestamp not null DEFAULT CURRENT_TIMESTAMP
 );
 
-drop table if exists calendar;
+drop table if exists calendar cascade;
 create table calendar (
     calendarid varchar(100) primary key not null,
     calendartype varchar(40) not null,
     date_created timestamp not null DEFAULT CURRENT_TIMESTAMP
 );
 
-drop table if exists calendarshift;
+drop table if exists calendarshift cascade;
 create table calendarshift (
     calendarid varchar(100) not null,
     shiftid integer not null,
     shiftstart timestamp not null,
     shiftend timestamp not null,
     shiftnumber integer not null,
-    value number not null,
+    value numeric not null,
     date_created timestamp not null DEFAULT CURRENT_TIMESTAMP,
     primary key(calendarid, shiftid),
     foreign key(calendarid) references calendar(calendarid)
 );
 
-drop table if exists workcenter;
+drop table if exists workcenter cascade;
 create table workcenter (
     workcenterid varchar(100) primary key not null,
     efficiency_calendar varchar(100) not null,
@@ -66,7 +66,7 @@ create table workcenter (
     foreign key(efficiency_calendar) references calendar(calendarid)
 );
 
-drop table if exists task;
+drop table if exists task cascade;
 create table task (
     taskid varchar(100) not null,
     skuid varchar(100) not null,
@@ -80,7 +80,7 @@ create table task (
     foreign key(skuid) references sku(skuid)
 );
 
-drop table if exists taskprecedence;
+drop table if exists taskprecedence cascade;
 create table taskprecedence (
     taskid varchar(100) not null,
     skuid varchar(100) not null,
@@ -91,7 +91,7 @@ create table taskprecedence (
     foreign key(predecessor, skuid) references task(taskid, skuid)
 );
 
-drop table if exists taskworkcenterassn;
+drop table if exists taskworkcenterassn cascade;
 create table taskworkcenterassn (
     taskid varchar(100) not null,
     skuid varchar(100) not null,
@@ -103,7 +103,7 @@ create table taskworkcenterassn (
     foreign key(workcenterid) references workcenter(workcenterid)
 );
 
-drop table if exists demand;
+drop table if exists demand cascade;
 create table demand (
     planid varchar(100) not null,
     demandid varchar(100) not null,
@@ -118,9 +118,9 @@ create table demand (
     foreign key(skuid) references sku(skuid)
 );
 
-drop table if exists taskplan;
+drop table if exists taskplan cascade;
 create table taskplan (
-    lotid integer primary key autoincrement,
+    lotid serial primary key,
     planid varchar(100) not null,
     demandid varchar(100) not null,
     skuid varchar(100) not null,
