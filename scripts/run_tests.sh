@@ -40,6 +40,6 @@ else
     then
         echo "Running test $TESTNAME... passed."
     else
-        echo "Running test $TESTNAME... passed."
+        echo "Running test $TESTNAME... failed."
     fi
 fi

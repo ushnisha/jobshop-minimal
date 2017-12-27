@@ -145,6 +145,10 @@ public class Workcenter {
             }
         }
 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+            System.out.println("\tFound DateRange: " + valid_DateRange);
+        }
+
         return valid_DateRange;
     }
 
@@ -196,6 +200,10 @@ public class Workcenter {
                 }
                 valid_DateRange = queryStartAfter(new_startdate, baseLT, p);
             }
+        }
+
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
+            System.out.println("\tFound DateRange: " + valid_DateRange);
         }
 
         return valid_DateRange;
