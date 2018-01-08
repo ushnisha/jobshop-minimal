@@ -2,14 +2,14 @@
 <html>
 
   <head>
-      <title>JobShop Planner: Test Plan 0017</title>
+      <title>JobShop Planner: Test Plan 0018</title>
       <link rel="stylesheet" type="text/css" href="jobshop.css" />
   </head>
 
   <body>
     <div class="main_container">
 
-       <h3>Test 0017:</h3>
+       <h3>Test 0018:</h3>
          <ul>
            <li>This test has the two demands, one for each part, both due 
                on 2018-01-14, and both for 270 units (base scenario data
@@ -29,10 +29,15 @@
 
            <li>RES004 has a dedicated efficiency calendar, which is almost
                identical to the default efficiency calendar, except that
-               it also has a holiday on 2018-01-06. This test case is very
-               similar to test0015, but since a JIT plan will require
-               planning OP20 on 2018-01-06, we see how the solver behaves
-               when one of the workcenters is not available on this day.
+               it also has a holiday on 2018-01-06.
+
+           <li>RES003 has a dedicated efficiency calendar, which is almost
+               identical to the default efficiency calendar, except that
+               it also has a holiday on 2018-01-05.
+
+           <li>This test case is very similar to test0017, but we have an
+               additional twist where building ahead to 2018-01-05 on RES003
+               is not possible because it is a holiday for RES003.
          </ul>
 
          <h3>The expected result is as follows:</h3>
@@ -40,9 +45,7 @@
          <ul>
            <li>Both demands are satisfied on time (one is satisfied early)
 
-           <li>We schedule OP10 and OP20 for both parts at different times
-               but on the same workcenters. The planning logic is explained
-               below.
+           <li>The planning logic is explained below.
 
            <li>First, we plan the demand for PART001 just in time and this
                results in PART001-SHIP planned to start on 2018-01-07 and
@@ -55,7 +58,7 @@
                loads workcenter RES001 (as in test0015).
 
            <li>Now we plan the demand for PART002, and PART002-SHIP is planned
-               to start on 2018-01-07 (just like in test0015).  However, at
+               to start on 2018-01-07 (just like in test0017).  However, at
                this point, things change.
  
            <li>Ideally, a JIT plan would require that PART002-OP20 be planned
@@ -63,19 +66,23 @@
                RES004 is not available on 2018-01-06 (due to its workcenter
                having no availability on that day - the specific variation in
                this dataset from test0015).  So, we need to plan PART002-OP20
-               to start on 2018-01-05.  Since we anyway need to schedule this
-               task one day earlier than JIT, we can now switch back to RES003
-               since it is the primary workcenter.
+               to start on 2018-01-05.  Ideally we would switch back to the
+               primary workcenter, RES003, but since RES003 is no longer available
+               on 2018-01-05, we switch to the alternate RES004.
 
-           <li>Similarly, now PART002-OP10 needs to start on 2018-01-04, and
-               we now plan it on its primary workcenter, RES001.
+           <li>PART002-OP10 needs to start on 2018-01-04, and we now plan it on
+               its primary workcenter, RES001, since we have already built ahead
+               for PART002-OP20.
 
-           <li>Thus, by making just one day (JIT day for PART002-OP20) a holiday
-               on RES004, we have cause the solver to build ahead and plan only
-               using the primary workcenters.  This is the "correct" result since
-               we will have to build ahead whether we use the primary or the
-               alternate workcenter for PART002-OP20; and so we switch to using
-               the user preferred primary workcenter whenever we can.
+           <li>The combination of test0017 and test0018 demonstrate how the solver
+               has the following default preferences:<br/>
+               (1) Try to minimize tardiness, even if that means using alternate
+                   workcenter<br/>
+               (2) Build as close to JIT as possible, even if that means using
+                   alternate workcenters. <br/>
+               (3) When it is possible to build on either the primary on alternate
+                   workcenter given the constraints of (1) and (2) above, always
+                   prefer to build on the primary workcenter.<br/>
 
            <li>As a side effect of building earlier by one day, we also end up
                shipping the PART002 demand one day earlier, and the planned date
@@ -88,11 +95,11 @@ PART001-DMD001; Priority: 1; Due: 270 on 2018-01-14T00:00; Planned: 270 on 2018-
 PART002-DMD002; Priority: 2; Due: 270 on 2018-01-14T00:00; Planned: 270 on 2018-01-13T00:00
 
 <strong>TaskPlans:</strong>
-ART001-OP10 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+PART001-OP10 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
 PART001-OP20 [ 2018-01-06T00:00 - 2018-01-07T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
 PART001-SHIP [ 2018-01-07T00:00 - 2018-01-14T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: null
 PART002-OP10 [ 2018-01-04T00:00 - 2018-01-05T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES001
-PART002-OP20 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+PART002-OP20 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES004
 PART002-SHIP [ 2018-01-06T00:00 - 2018-01-13T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: null
 
 <strong>WorkcenterPlans:</strong>
@@ -101,9 +108,9 @@ RES001
  - PART001-OP10 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
 RES002
 RES003
- - PART002-OP20 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
  - PART001-OP20 [ 2018-01-06T00:00 - 2018-01-07T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
 RES004
+ - PART002-OP20 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES004
          </pre>
 
     </div>
