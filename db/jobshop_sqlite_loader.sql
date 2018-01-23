@@ -106,9 +106,9 @@ drop table if exists _demand_staging;
 drop table if exists _taskplan_staging;
 
 /* Update tables with timestamp fields to have JDBC driver compliant formats */
-update plan set planstart=strftime('%Y-%m-%d %H:%M:%S.%f', planstart);
-update plan set planend=strftime('%Y-%m-%d %H:%M:%S.%f', planend);
-update calendarshift set shiftstart=strftime('%Y-%m-%d %H:%M:%S.%f', shiftstart);
-update calendarshift set shiftend=strftime('%Y-%m-%d %H:%M:%S.%f', shiftend);
-update demand set duedate=strftime('%Y-%m-%d %H:%M:%S.%f', duedate);
+update plan set planstart=strftime('%Y-%m-%d %H:%M:%f', planstart);
+update plan set planend=strftime('%Y-%m-%d %H:%M:%f', planend);
+update calendarshift set shiftstart=strftime('%Y-%m-%d %H:%M:%f', shiftstart);
+update calendarshift set shiftend=strftime('%Y-%m-%d %H:%M:%f', shiftend);
+update demand set duedate=strftime('%Y-%m-%d %H:%M:%f', duedate);
 

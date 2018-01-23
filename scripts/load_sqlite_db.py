@@ -100,15 +100,16 @@ if __name__ == "__main__":
         tablename = tablename.rstrip()
         datafilename = datadir + "/" + tablename + ".csv"
         if os.path.isfile(datafilename):
+            print("Loading table: " + tablename + " ...")
             loaddatabase(connection, tablename, datafilename)
 
     ## Finally update all the timestamp fields for JDBC driver compliant format
     ##
-    stmt = [ "update plan set planstart=strftime('%Y-%m-%d %H:%M:%S.%f', planstart)",
-             "update plan set planend=strftime('%Y-%m-%d %H:%M:%S.%f', planend)",
-             "update calendarshift set shiftstart=strftime('%Y-%m-%d %H:%M:%S.%f', shiftstart)",
-             "update calendarshift set shiftend=strftime('%Y-%m-%d %H:%M:%S.%f', shiftend)",
-             "update demand set duedate=strftime('%Y-%m-%d %H:%M:%S.%f', duedate)" ]
+    stmt = [ "update plan set planstart=strftime('%Y-%m-%d %H:%M:%f', planstart)",
+             "update plan set planend=strftime('%Y-%m-%d %H:%M:%f', planend)",
+             "update calendarshift set shiftstart=strftime('%Y-%m-%d %H:%M:%f', shiftstart)",
+             "update calendarshift set shiftend=strftime('%Y-%m-%d %H:%M:%f', shiftend)",
+             "update demand set duedate=strftime('%Y-%m-%d %H:%M:%f', duedate)" ]
 
     for s in stmt:
         connection.execute(s)
