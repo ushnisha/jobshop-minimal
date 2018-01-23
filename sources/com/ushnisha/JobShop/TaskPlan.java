@@ -130,6 +130,11 @@ public class TaskPlan {
             return true;
         }
 
+        if((this.start.isEqual(dr.getStart()) || this.start.isBefore(dr.getStart())) &&
+           (this.end.isEqual(dr.getEnd()) || this.end.isAfter(dr.getEnd()))) {
+            return true;
+        }
+
         return false;
     }
 

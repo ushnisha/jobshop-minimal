@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+      <title>JobShop Planner: Test Plan 0019</title>
+      <link rel="stylesheet" type="text/css" href="jobshop.css" />
+  </head>
+
+  <body>
+    <div class="main_container">
+
+       <h3>Test 0019:</h3>
+         <ul>
+           <li>This test has the two demands, one for each part.  The demand
+               for PART001 is for 846 and is due on 2018-01-15.  The demand
+               for PART002 is for 270 and is due on 2018-01-14.
+
+           <li>The demand for PART001 has a priority of 1, while the demand 
+               for PART002 has a priority of 2. That is, the demand for 
+               PART001 has a higher priority and is planned first. 
+
+           <li>The RESOURCE_CONSTRAINED planning parameter is set to TRUE. 
+         </ul>
+
+         <h3>Variations from the Base Scenario:</h3>
+         <ul>
+             <li>The demand quanitty for PART001 is increased to 846 and it is
+                 due one day later, 2018-01-15.
+                 
+             <li>The RESOURCE_CONSTRAINED planning parameter is set to TRUE.
+
+             <li>Please check github issue #31 to understand the motivation for
+                 this test plan.
+         </ul>
+
+         <h3>The expected result is as follows:</h3>
+
+         <ul>
+           <li>Both demands are satisfied on time.
+
+           <li>Since PART001 demand has a higher quantity (846) its lead time
+               is now 3 days. This changes the planning logic.
+
+           <li>We can follow the constrained planning logic of by working
+               through the steps of planning the demands, one at a time.
+
+           <li>First we plan the SHIP for PART001 (higher priority demand
+               and is planned first).  It needs to start on 2018-01-08
+               to complete on time. As a result OP20 for PART001 is planned
+               to load RES003 and starts on 2018-01-05 and ends on 2018-01-08.
+               OP10 for PART001 is planned to start on 2018-01-02 and loads
+               RES001, the primary workcenter for PART001-OP10.
+
+           <li>Next we plan the SHIP for PART002.  It needs to start on
+               2018-01-07 to complete just in time. As a result OP20 for
+               PART002 is required to start on 2018-01-06 for a JIT plan
+               and load RES003 (the single shared workcenter for PART001 and
+               PART002 OP20's).  However, since PART001-OP20 is already 
+               planned in this period, we build ahead and start on 2018-01-04.
+
+           <li>Consequently, OP10 for PART002 needs to start on 2018-01-03 to
+               complete by 2018-01-04.  Since this time is not available on
+               the primary workcenter RES001, we plan PART002-OP10 on RES002
+               on these dates.
+
+           <li>While this seems to be just another case of constrained planning
+               that must already be covered with other test cases, it is not;
+               a specific corner case described in github issue #31 happens in
+               this case where the JIT plan for PART002-OP20 falls completely
+               within the JIT plan for PART001-OP20. A bug in the code failed
+               to take account of this corner case and resulted in both 
+               tasks planned JIT on RES003 resulting in
+               a workcenter overload violation.
+         </ul>
+
+         <pre>
+<strong>Demands:</strong>
+PART001-DMD001; Priority: 1; Due: 846 on 2018-01-15T00:00; Planned: 846 on 2018-01-15T00:00
+PART002-DMD002; Priority: 2; Due: 270 on 2018-01-14T00:00; Planned: 270 on 2018-01-12T00:00
+
+<strong>TaskPlans:</strong>
+PART001-OP10 [ 2018-01-02T00:00 - 2018-01-05T00:00] Qty: 846; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+PART001-OP20 [ 2018-01-05T00:00 - 2018-01-08T00:00] Qty: 846; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
+PART001-SHIP [ 2018-01-08T00:00 - 2018-01-15T00:00] Qty: 846; DemandID: DMD001; Plan: Basic Plan; Loads: null
+PART002-OP10 [ 2018-01-03T00:00 - 2018-01-04T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES002
+PART002-OP20 [ 2018-01-04T00:00 - 2018-01-05T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+PART002-SHIP [ 2018-01-05T00:00 - 2018-01-12T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: null
+
+<strong>WorkcenterPlans:</strong>
+RES001
+ - PART001-OP10 [ 2018-01-02T00:00 - 2018-01-05T00:00] Qty: 846; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+RES002
+ - PART002-OP10 [ 2018-01-03T00:00 - 2018-01-04T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES002
+RES003
+ - PART002-OP20 [ 2018-01-04T00:00 - 2018-01-05T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+ - PART001-OP20 [ 2018-01-05T00:00 - 2018-01-08T00:00] Qty: 846; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
+
+         </pre>
+
+    </div>
+
+  </body>
+
+</html>
