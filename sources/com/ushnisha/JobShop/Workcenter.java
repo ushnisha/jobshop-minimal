@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import static com.ushnisha.JobShop.JobShop.DEBUG_LEVELS;
-import static com.ushnisha.JobShop.JobShop.DEBUG;
+import static com.ushnisha.JobShop.JobShop.LOG;
 
 /**
  * A class representing a Workcenter or a Machine or a Resource.
@@ -111,9 +111,10 @@ public class Workcenter {
 
         boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-            System.out.println("Search for date ENDING ON ON BEFORE " + enddate + " on workcenter " + this.name);
-        }
+        JobShop.LOG("Search for date ENDING ON ON BEFORE " +
+                    enddate + " on workcenter " + this.name,
+                    DEBUG_LEVELS.DETAILED);
+
         valid_DateRange = CalendarUtils.calcEndBefore(efficiency_calendar, enddate, baseLT);
 
         // If capacity constrained, make sure that there is no interesection with other taskplans
@@ -136,18 +137,16 @@ public class Workcenter {
                 }
             }
             if (intersects) {
-                if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                    System.out.println("Searching for daterange earlier than: " + enddate);
-                    System.out.println("Intersection of valid daterange: " + valid_DateRange);
-                    System.out.println("Looking now to end before: " + new_enddate);
-                }
+
+                JobShop.LOG("Searching for daterange earlier than: " + enddate, DEBUG_LEVELS.DETAILED);
+                JobShop.LOG("Intersection of valid daterange: " + valid_DateRange, DEBUG_LEVELS.DETAILED);
+                JobShop.LOG("Looking now to end before: " + new_enddate, DEBUG_LEVELS.DETAILED);
+
                 valid_DateRange = queryEndBefore(new_enddate, baseLT, p);
             }
         }
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-            System.out.println("\tFound DateRange: " + valid_DateRange);
-        }
+        JobShop.LOG("\tFound DateRange: " + valid_DateRange, DEBUG_LEVELS.DETAILED);
 
         return valid_DateRange;
     }
@@ -167,9 +166,9 @@ public class Workcenter {
 
         boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-            System.out.println("Search for date STARTING ON ON AFTER " + startdate + " on workcenter " + this.name);
-        }
+        JobShop.LOG("Search for date STARTING ON ON AFTER " +
+                    startdate + " on workcenter " + this.name,
+                    DEBUG_LEVELS.DETAILED);
 
         valid_DateRange = CalendarUtils.calcStartAfter(efficiency_calendar, startdate, baseLT);
 
@@ -193,18 +192,16 @@ public class Workcenter {
                 }
             }
             if (intersects) {
-                if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                    System.out.println("Searching for daterange later than: " + startdate);
-                    System.out.println("Intersection with valid daterange: " + valid_DateRange);
-                    System.out.println("Looking now to start after: " + new_startdate);
-                }
+
+                JobShop.LOG("Searching for daterange later than: " + startdate, DEBUG_LEVELS.DETAILED);
+                JobShop.LOG("Intersection with valid daterange: " + valid_DateRange, DEBUG_LEVELS.DETAILED);
+                JobShop.LOG("Looking now to start after: " + new_startdate, DEBUG_LEVELS.DETAILED);
+
                 valid_DateRange = queryStartAfter(new_startdate, baseLT, p);
             }
         }
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-            System.out.println("\tFound DateRange: " + valid_DateRange);
-        }
+        JobShop.LOG("\tFound DateRange: " + valid_DateRange, DEBUG_LEVELS.DETAILED);
 
         return valid_DateRange;
     }

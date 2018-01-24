@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import static com.ushnisha.JobShop.JobShop.DEBUG_LEVELS;
-import static com.ushnisha.JobShop.JobShop.DEBUG;
+import static com.ushnisha.JobShop.JobShop.LOG;
 
 /**
  * A class the represents customer demand.
@@ -138,9 +138,7 @@ public class Demand {
      */
     public void plan() {
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-            System.out.println("Planning for demand: " + this.id);
-        }
+        JobShop.LOG("Planning for demand: " + this.id, DEBUG_LEVELS.DETAILED);
 
         Request req = new Request(this.id, this.dueqty, this.duedate, this.plan);
         Promise promise = this.sku.getDeliveryTask().request(req);

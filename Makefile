@@ -7,6 +7,7 @@ TEST = tests
 SCRIPTS = scripts
 LIB = lib
 DOCS = docs
+LOGS = logs
 JFLAGS = -g -d $(ROOT)/$(DEST)
 JC = javac
 JDOC = javadoc
@@ -15,6 +16,7 @@ JARFLAGS = cvfm
 TESTNAME = ALL
 
 dirs: 
+	( test -d $(ROOT)/$(LOGS) || mkdir -p $(ROOT)/$(LOGS) ) && \
 	( test -d $(ROOT)/$(DEST) || mkdir -p $(ROOT)/$(DEST)/$(PKG) ) && \
 	( test -d $(ROOT)/$(LIB) || mkdir -p $(ROOT)/$(LIB) ) && \
 	( test -d $(ROOT)/$(DOCS) || mkdir -p $(ROOT)/$(DOCS) ) && \
@@ -43,6 +45,9 @@ clean: dirs
 	$(RM) $(ROOT)/$(DOCS)/package-list && \
 	$(RM) $(ROOT)/$(DOCS)/$(PKG)/*.html && \
 	$(RM) $(ROOT)/$(TEST)/outputs/*.out && \
+	$(RM) $(ROOT)/$(LOGS)/*.log && \
+	$(RM) $(ROOT)/$(LOGS)/*.good && \
+	$(RM) $(ROOT)/$(LOGS)/*.bad && \
 	$(RM) $(ROOT)/data/*.csv
 
 all: clean

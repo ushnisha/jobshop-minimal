@@ -20,12 +20,13 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
 import static com.ushnisha.JobShop.JobShop.DEBUG_LEVELS;
-import static com.ushnisha.JobShop.JobShop.DEBUG;
+import static com.ushnisha.JobShop.JobShop.LOG;
 
 /**
  * A class representing a Task that needs to be performed to meet a Demand.
@@ -145,6 +146,14 @@ public class Task {
     }
 
     /**
+     * Get a list of the workcenters associated with this task
+     * @return List<Workcenter> list of workcenters associated with this task
+     */
+    public Set<Workcenter> getWorkcenters() {
+        return this.workcenters.keySet();
+    }
+
+    /**
      * Returns the list of TaskPlans planned for this Task
      * @return List<TaskPlan> associated with this Task
      */
@@ -197,9 +206,10 @@ public class Task {
                                 .map(Map.Entry::getKey)
                                 .collect(Collectors.toList());
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-			System.out.println("Task: " + this.taskNum + "; querying workcenter for END ON OR BEFORE " + enddate);
-		}
+        JobShop.LOG("Task: " + this.taskNum +
+                    "; querying workcenter for END ON OR BEFORE " + enddate,
+                    DEBUG_LEVELS.DETAILED);
+
         if (!capacity_constrained) {
             this.workcenter = wrks.get(0);
             res_DateRange = this.workcenter.queryEndBefore(enddate, baseLT, p);
@@ -211,22 +221,18 @@ public class Task {
             for (Workcenter w : wrks) {
                 DateRange dr = w.queryEndBefore(enddate, baseLT, p);
                 wrkDRs.put(w, dr);
-                if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                    System.out.println(this.workcenters.get(w) + ": " + w.getName() + ": " + dr);
-                }
+                JobShop.LOG(this.workcenters.get(w) + ": " + w.getName() + ": " + dr,
+                            DEBUG_LEVELS.DETAILED);
             }
 
             // First check in order of preferred workcenters to see if any of them
             // end exactly on the demanded enddate; if yes, then return that
             // workcenter and date - and we are done
-            if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                System.out.println("Looking for exact enddate match");
-            }
+            JobShop.LOG("Looking for exact enddate match", DEBUG_LEVELS.DETAILED);
+
             for (Workcenter w : wrks) {
                 if (wrkDRs.get(w).getEnd().compareTo(enddate) == 0) {
-                    if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                        System.out.println("Found exact date match");
-                    }
+                    JobShop.LOG("Found exact date match", DEBUG_LEVELS.DETAILED);
                     this.workcenter = w;
                     return wrkDRs.get(w);
                 }
@@ -243,16 +249,16 @@ public class Task {
             for (Workcenter w : wrks) {
                 if (wrkDRs.get(w).getEnd().compareTo(enddate) < 0) {
                     long diff = enddate.until(wrkDRs.get(w).getEnd(), ChronoUnit.MINUTES);
-                    if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                        System.out.println(this.workcenters.get(w) + ": " + w.getName() + ": " + wrkDRs.get(w) + ", " + diff); 
-                    }
+
+                    JobShop.LOG(this.workcenters.get(w) + ": " + w.getName() +
+                                ": " + wrkDRs.get(w) + ", " + diff,
+                                DEBUG_LEVELS.DETAILED);
+
                     if (diff > delta) {
                         found = true;
                         delta = diff;
                         bestWrk = w;
-                        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                            System.out.println("Found earlier date match");
-                        }
+                        JobShop.LOG("Found earlier date match", DEBUG_LEVELS.DETAILED);
                     }
                 }
             }
@@ -271,16 +277,16 @@ public class Task {
             for (Workcenter w : wrks) {
                 if (wrkDRs.get(w).getEnd().compareTo(enddate) > 0) {
                     long diff = enddate.until(wrkDRs.get(w).getEnd(), ChronoUnit.MINUTES);
-                    if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                        System.out.println(this.workcenters.get(w) + ": " + w.getName() + ": " + wrkDRs.get(w) + ", " + diff); 
-                    }
+
+                    JobShop.LOG(this.workcenters.get(w) + ": " + w.getName() +
+                                ": " + wrkDRs.get(w) + ", " + diff,
+                                DEBUG_LEVELS.DETAILED);
+
                     if (diff < delta) {
                         found = true;
                         delta = diff;
                         bestWrk = w;
-                        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                            System.out.println("Found later date match");
-                        }
+                        JobShop.LOG("Found later date match", DEBUG_LEVELS.DETAILED);
                     }
                 }
             }
@@ -318,9 +324,10 @@ public class Task {
                                 .map(Map.Entry::getKey)
                                 .collect(Collectors.toList());
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-			System.out.println("Task: " + this.taskNum + "; querying workcenter for START ON OR AFTER " + startdate);
-		}
+        JobShop.LOG("Task: " + this.taskNum +
+                    "; querying workcenter for START ON OR AFTER " + startdate,
+                    DEBUG_LEVELS.DETAILED);
+
         if (!capacity_constrained) {
             this.workcenter = wrks.get(0);
             res_DateRange = this.workcenter.queryStartAfter(startdate, baseLT, p);
@@ -332,22 +339,18 @@ public class Task {
             for (Workcenter w : wrks) {
                 DateRange dr = w.queryStartAfter(startdate, baseLT, p);
                 wrkDRs.put(w, dr);
-                if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                    System.out.println(this.workcenters.get(w) + ": " + w.getName() + ": " + dr);
-                }
+                JobShop.LOG(this.workcenters.get(w) + ": " + w.getName() + ": " + dr,
+                            DEBUG_LEVELS.DETAILED);
             }
 
             // First check in order of preferred workcenters to see if any of them
             // end exactly on the demanded enddate; if yes, then return that
             // workcenter and date - and we are done
-            if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                System.out.println("Looking for exact enddate match");
-            }
+            JobShop.LOG("Looking for exact enddate match", DEBUG_LEVELS.DETAILED);
+
             for (Workcenter w : wrks) {
                 if (wrkDRs.get(w).getStart().compareTo(startdate) == 0) {
-                    if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                        System.out.println("Found exact date match");
-                    }
+                    JobShop.LOG("Found exact date match", DEBUG_LEVELS.DETAILED);
                     this.workcenter = w;
                     return wrkDRs.get(w);
                 }
@@ -368,9 +371,7 @@ public class Task {
                         found = true;
                         delta = diff;
                         bestWrk = w;
-                        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                            System.out.println("Found later date match");
-                        }
+                        JobShop.LOG("Found later date match", DEBUG_LEVELS.DETAILED);
                     }
                 }
             }
@@ -392,9 +393,7 @@ public class Task {
                     if (diff < delta) {
                         delta = diff;
                         bestWrk = w;
-                        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                            System.out.println("Found earlier date match");
-                        }
+                        JobShop.LOG("Found earlier date match", DEBUG_LEVELS.DETAILED);
                     }
                 }
             }
@@ -465,9 +464,10 @@ public class Task {
      */
     public Promise plan(Request req, DateRange dr) {
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-			System.out.println("Planning Task: " + this.taskNum + " between " + dr.getStart() + " and " + dr.getEnd() + " on workcenter " + this.workcenter);
-		}
+        JobShop.LOG("Planning Task: " + this.taskNum + " between " +
+                    dr.getStart() + " and " + dr.getEnd() +
+                    " on workcenter " + this.workcenter,
+                    DEBUG_LEVELS.DETAILED);
 
         TaskPlan tp = new TaskPlan(this, req.getPlan(), this.workcenter, dr.getStart(), dr.getEnd(), req.getQuantity(), req.getID());
         this.plans.add(tp);
@@ -518,9 +518,10 @@ public class Task {
             res_dateRange = new DateRange(validStart, validEnd);
         }
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-			System.out.println("Planning Task: " + this.taskNum + " between " + res_dateRange.getStart() + " and " + res_dateRange.getEnd() + " on workcenter " + this.workcenter);
-		}
+        JobShop.LOG("Planning Task: " + this.taskNum + " between " +
+                    res_dateRange.getStart() + " and " +
+                    res_dateRange.getEnd() + " on workcenter " + this.workcenter,
+                    DEBUG_LEVELS.DETAILED);
 
         TaskPlan tp = new TaskPlan(this, req.getPlan(), this.workcenter, res_dateRange.getStart(), res_dateRange.getEnd(), qty, req.getID());
         this.plans.add(tp);
@@ -556,6 +557,22 @@ public class Task {
      */
     public SKU getSKU() {
         return this.sku;
+    }
+
+    /**
+     * Returns the number of workcenters associated with this task
+     * @return int representing the number of workcenters associated with this task
+     */
+    public int getWorkcenterCount() {
+        return this.workcenters.size();
+    }
+
+    /**
+     * Returns the time_per_unit associated with this task
+     * @return int representing the time on a workcenter per unit of this task
+     */
+    public long getTimePer() {
+        return this.time_per;
     }
 
     /**

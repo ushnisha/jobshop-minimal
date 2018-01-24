@@ -7,6 +7,9 @@
 *.js
 *.css
 *.html
+*.log
+*.good
+*.bad
 package-list
 !tests/**/*.html
 !tests/**/*.css
