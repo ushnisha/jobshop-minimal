@@ -46,7 +46,7 @@ public class Task {
     private long min_lot_size;
     private long max_lot_size;
     private Workcenter workcenter;
-    private Map<Integer, Workcenter> workcenters;
+    private Map<Workcenter, Integer> workcenters;
     private List<TaskPlan> plans;
 
     /**
@@ -76,7 +76,7 @@ public class Task {
         this.taskNum = this.sku.getName() + "-" + this.taskid;
         this.level = 0;
         this.workcenter = null;
-        this.workcenters = new HashMap<Integer, Workcenter>();
+        this.workcenters = new HashMap<Workcenter, Integer>();
         this.plans = new ArrayList<TaskPlan>();
     }
 
@@ -141,7 +141,7 @@ public class Task {
      *                 load/use when planning a TaskPlan of this task
      */
     public void addWorkcenter(Workcenter w, Integer priority) {
-        this.workcenters.put(priority, w);
+        this.workcenters.put(w, priority);
     }
 
     /**
@@ -192,29 +192,27 @@ public class Task {
         DateRange res_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
         boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
-        List<Integer> wkeys = this.workcenters.keySet().stream()
-                                .sorted()
+        List<Workcenter> wrks = this.workcenters.entrySet().stream()
+                                .sorted(Map.Entry.comparingByValue())
+                                .map(Map.Entry::getKey)
                                 .collect(Collectors.toList());
-
-        Integer pkey = wkeys.get(0);
 
         if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
 			System.out.println("Task: " + this.taskNum + "; querying workcenter for END ON OR BEFORE " + enddate);
 		}
         if (!capacity_constrained) {
-            this.workcenter = this.workcenters.get(pkey);
+            this.workcenter = wrks.get(0);
             res_DateRange = this.workcenter.queryEndBefore(enddate, baseLT, p);
         }
         else {
 
-            Map<Integer,DateRange> wrkDRs = new HashMap<Integer,DateRange>();
+            Map<Workcenter,DateRange> wrkDRs = new HashMap<Workcenter,DateRange>();
 
-            for (Integer i : wkeys) {
-                Workcenter w = this.workcenters.get(i);
+            for (Workcenter w : wrks) {
                 DateRange dr = w.queryEndBefore(enddate, baseLT, p);
-                wrkDRs.put(i, dr);
+                wrkDRs.put(w, dr);
                 if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                    System.out.println(i + ": " + this.workcenters.get(i).getName() + ": " + dr);
+                    System.out.println(this.workcenters.get(w) + ": " + w.getName() + ": " + dr);
                 }
             }
 
@@ -224,13 +222,13 @@ public class Task {
             if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
                 System.out.println("Looking for exact enddate match");
             }
-            for (Integer i : wkeys) {
-                if (wrkDRs.get(i).getEnd().compareTo(enddate) == 0) {
+            for (Workcenter w : wrks) {
+                if (wrkDRs.get(w).getEnd().compareTo(enddate) == 0) {
                     if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
                         System.out.println("Found exact date match");
                     }
-                    this.workcenter = this.workcenters.get(i);
-                    return wrkDRs.get(i);
+                    this.workcenter = w;
+                    return wrkDRs.get(w);
                 }
             }
 
@@ -240,18 +238,18 @@ public class Task {
 
             boolean found = false;
             long delta = Long.MIN_VALUE;
-            Integer bestWrkIdx = pkey;
+            Workcenter bestWrk = wrks.get(0);
 
-            for (Integer i : wkeys) {
-                if (wrkDRs.get(i).getEnd().compareTo(enddate) < 0) {
-                    long diff = enddate.until(wrkDRs.get(i).getEnd(), ChronoUnit.MINUTES);
+            for (Workcenter w : wrks) {
+                if (wrkDRs.get(w).getEnd().compareTo(enddate) < 0) {
+                    long diff = enddate.until(wrkDRs.get(w).getEnd(), ChronoUnit.MINUTES);
                     if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                        System.out.println(i + ": " + this.workcenters.get(i).getName() + ": " + wrkDRs.get(i) + ", " + diff); 
+                        System.out.println(this.workcenters.get(w) + ": " + w.getName() + ": " + wrkDRs.get(w) + ", " + diff); 
                     }
                     if (diff > delta) {
                         found = true;
                         delta = diff;
-                        bestWrkIdx = i;
+                        bestWrk = w;
                         if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
                             System.out.println("Found earlier date match");
                         }
@@ -260,26 +258,26 @@ public class Task {
             }
 
             if (found) {
-                this.workcenter = this.workcenters.get(bestWrkIdx);
-                return wrkDRs.get(bestWrkIdx);
+                this.workcenter = bestWrk;
+                return wrkDRs.get(bestWrk);
             }
 
             // If no workcenter can return a data earlier than the exact enddate
             // then look for the workcenter that gives the later date that is
             // closest to the requested enddate (minimize tardiness)
             delta = Long.MAX_VALUE;
-            bestWrkIdx = pkey;
+            bestWrk = wrks.get(0);
 
-            for (Integer i : wkeys) {
-                if (wrkDRs.get(i).getEnd().compareTo(enddate) > 0) {
-                    long diff = enddate.until(wrkDRs.get(i).getEnd(), ChronoUnit.MINUTES);
+            for (Workcenter w : wrks) {
+                if (wrkDRs.get(w).getEnd().compareTo(enddate) > 0) {
+                    long diff = enddate.until(wrkDRs.get(w).getEnd(), ChronoUnit.MINUTES);
                     if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                        System.out.println(i + ": " + this.workcenters.get(i).getName() + ": " + wrkDRs.get(i) + ", " + diff); 
+                        System.out.println(this.workcenters.get(w) + ": " + w.getName() + ": " + wrkDRs.get(w) + ", " + diff); 
                     }
                     if (diff < delta) {
                         found = true;
                         delta = diff;
-                        bestWrkIdx = i;
+                        bestWrk = w;
                         if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
                             System.out.println("Found later date match");
                         }
@@ -288,8 +286,8 @@ public class Task {
             }
 
             if (found) {
-                this.workcenter = this.workcenters.get(bestWrkIdx);
-                return wrkDRs.get(bestWrkIdx);
+                this.workcenter = bestWrk;
+                return wrkDRs.get(bestWrk);
             }
         }
 
@@ -315,28 +313,27 @@ public class Task {
         DateRange res_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
         boolean capacity_constrained = Boolean.parseBoolean(p.getParam("RESOURCE_CONSTRAINED"));
 
-        List<Integer> wkeys = this.workcenters.keySet().stream()
-                                .sorted()
+        List<Workcenter> wrks = this.workcenters.entrySet().stream()
+                                .sorted(Map.Entry.comparingByValue())
+                                .map(Map.Entry::getKey)
                                 .collect(Collectors.toList());
-        Integer pkey = wkeys.get(0);
 
         if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
 			System.out.println("Task: " + this.taskNum + "; querying workcenter for START ON OR AFTER " + startdate);
 		}
         if (!capacity_constrained) {
-            this.workcenter = this.workcenters.get(pkey);
+            this.workcenter = wrks.get(0);
             res_DateRange = this.workcenter.queryStartAfter(startdate, baseLT, p);
         }
         else {
 
-            Map<Integer,DateRange> wrkDRs = new HashMap<Integer,DateRange>();
+            Map<Workcenter,DateRange> wrkDRs = new HashMap<Workcenter,DateRange>();
 
-            for (Integer i : wkeys) {
-                Workcenter w = this.workcenters.get(i);
+            for (Workcenter w : wrks) {
                 DateRange dr = w.queryStartAfter(startdate, baseLT, p);
-                wrkDRs.put(i, dr);
+                wrkDRs.put(w, dr);
                 if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
-                    System.out.println(i + ": " + this.workcenters.get(i).getName() + ": " + dr);
+                    System.out.println(this.workcenters.get(w) + ": " + w.getName() + ": " + dr);
                 }
             }
 
@@ -346,13 +343,13 @@ public class Task {
             if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
                 System.out.println("Looking for exact enddate match");
             }
-            for (Integer i : wkeys) {
-                if (wrkDRs.get(i).getStart().compareTo(startdate) == 0) {
+            for (Workcenter w : wrks) {
+                if (wrkDRs.get(w).getStart().compareTo(startdate) == 0) {
                     if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
                         System.out.println("Found exact date match");
                     }
-                    this.workcenter = this.workcenters.get(i);
-                    return wrkDRs.get(i);
+                    this.workcenter = w;
+                    return wrkDRs.get(w);
                 }
             }
 
@@ -362,15 +359,15 @@ public class Task {
 
             boolean found = false;
             long delta = Long.MIN_VALUE;
-            Integer bestWrkIdx = pkey;
+            Workcenter bestWrk = wrks.get(0);
 
-            for (Integer i : wkeys) {
-                if (wrkDRs.get(i).getStart().compareTo(startdate) > 0) {
-                    long diff = startdate.until(wrkDRs.get(i).getStart(), ChronoUnit.MINUTES);
+            for (Workcenter w : wrks) {
+                if (wrkDRs.get(w).getStart().compareTo(startdate) > 0) {
+                    long diff = startdate.until(wrkDRs.get(w).getStart(), ChronoUnit.MINUTES);
                     if (diff > delta) {
                         found = true;
                         delta = diff;
-                        bestWrkIdx = i;
+                        bestWrk = w;
                         if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
                             System.out.println("Found later date match");
                         }
@@ -379,22 +376,22 @@ public class Task {
             }
 
             if (found) {
-                this.workcenter = this.workcenters.get(bestWrkIdx);
-                return wrkDRs.get(bestWrkIdx);
+                this.workcenter = bestWrk;
+                return wrkDRs.get(bestWrk);
             }
 
             // If no workcenter can return a data later than the exact start
             // then look for the workcenter that gives the earlier date that is
             // closest to the requested startdate (minimize build ahead)
             delta = Long.MAX_VALUE;
-            bestWrkIdx = pkey;
+            bestWrk = wrks.get(0);
 
-            for (Integer i : wkeys) {
-                if (wrkDRs.get(i).getStart().compareTo(startdate) < 0) {
-                    long diff = startdate.until(wrkDRs.get(i).getStart(), ChronoUnit.MINUTES);
+            for (Workcenter w : wrks) {
+                if (wrkDRs.get(w).getStart().compareTo(startdate) < 0) {
+                    long diff = startdate.until(wrkDRs.get(w).getStart(), ChronoUnit.MINUTES);
                     if (diff < delta) {
                         delta = diff;
-                        bestWrkIdx = i;
+                        bestWrk = w;
                         if (DEBUG.ordinal() >= DEBUG_LEVELS.DETAILED.ordinal()) {
                             System.out.println("Found earlier date match");
                         }
@@ -403,8 +400,8 @@ public class Task {
             }
 
             if (found) {
-                this.workcenter = this.workcenters.get(bestWrkIdx);
-                return wrkDRs.get(bestWrkIdx);
+                this.workcenter = bestWrk;
+                return wrkDRs.get(bestWrk);
             }
         }
 
