@@ -26,7 +26,7 @@ then
             echo "cleandata|false" >> $TESTDIR/$tname/jobshop_options.opt
             echo "debug_level|MINIMAL" >> $TESTDIR/$tname/jobshop_options.opt
 
-            java -jar $LIBDIR/JobShop.jar $TESTDIR/$tname/jobshop_options.opt > $TESTDIR/outputs/$tname.out
+            java -jar $LIBDIR/JobShop.jar $TESTDIR/$tname/jobshop_options.opt > $TESTDIR/outputs/$tname.out 2>&1
             diff $TESTDIR/outputs/$tname.out $TESTDIR/expects/$tname.expect > /dev/null
             if [ $? -eq 0 ]
             then
@@ -41,7 +41,7 @@ else
     echo "logdir|$LIBDIR/../logs" >> $TESTDIR/$tname/jobshop_options.opt
     echo "cleandata|false" >> $TESTDIR/$tname/jobshop_options.opt
     echo "debug_level|MINIMAL" >> $TESTDIR/$tname/jobshop_options.opt
-    java -jar $LIBDIR/JobShop.jar $TESTDIR/$TESTNAME/jobshop_options.opt > $TESTDIR/outputs/$TESTNAME.out
+    java -jar $LIBDIR/JobShop.jar $TESTDIR/$TESTNAME/jobshop_options.opt > $TESTDIR/outputs/$TESTNAME.out 2>&1
     diff $TESTDIR/outputs/$TESTNAME.out $TESTDIR/expects/$TESTNAME.expect >/dev/null
     if [ $? -eq 0 ]
     then
