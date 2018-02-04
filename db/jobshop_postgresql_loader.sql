@@ -22,6 +22,7 @@
  */
 
 delete FROM taskplan;
+delete FROM relworkorder;
 delete FROM demand;
 delete FROM taskworkcenterassn;
 delete FROM taskprecedence;
@@ -52,3 +53,5 @@ delete FROM plan;
 \COPY taskworkcenterassn(taskid, skuid, workcenterid, priority) FROM 'taskworkcenterassn.csv' DELIMITER ',' CSV HEADER;
 
 \COPY demand(planid, demandid, customerid, skuid, duedate, duequantity, priority) FROM 'demand.csv' DELIMITER ',' CSV HEADER;
+
+\COPY relworkorder(planid, workorderid, lotid, skuid, taskid, startdate, enddate, quantity, workcenterid, demandid) FROM 'relworkorder.csv' DELIMITER ',' CSV HEADER;

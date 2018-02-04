@@ -59,6 +59,7 @@ public class Task {
     private Workcenter workcenter;
     private Map<Workcenter, Integer> workcenters;
     private List<TaskPlan> plans;
+    private List<ReleasedWorkOrder> relworkorders;
 
     /**
      * Constructor for the task
@@ -89,6 +90,7 @@ public class Task {
         this.workcenter = null;
         this.workcenters = new HashMap<Workcenter, Integer>();
         this.plans = new ArrayList<TaskPlan>();
+        this.relworkorders = new ArrayList<ReleasedWorkOrder>();
     }
 
     /**
@@ -430,37 +432,65 @@ public class Task {
     }
 
     /**
-     * A Promise that is made in response to a request from the
-     * downstream Task or Demand.
+     * Function called by a downstream Task or Demand asking for a certain
+     * quanity of the sku by a certian time.
+     * Returns a Promise based on resource availability and the response
+     * from its own upstream tasks (if any).
      * @param req Request that is made by the downstream Task or Demand
      * @return Promise that is the response to the input request, req
      */
     public Promise request(Request req) {
 
-        //calculateLPST(req.getQuantity(), req.getDate(), req.getPlan());
+        Demand dmd = req.getDemand();
+        long origQty = req.getQuantity();
+        long remQty = origQty;
+        LocalDateTime due = req.getDate();
+        Plan p = req.getPlan();
+
+        List<Promise> allPromises = new ArrayList<Promise>();
+
+        // First check with any ReleasedWorkOrders associated with this request
+        Promise woPromise = checkReleasedWorkOrdersForQuantity(req);
+        allPromises.add(woPromise);
+        for (TaskPlan tp : woPromise.getTaskPlans()) {
+            remQty -= tp.getQuantity();
+        }
+
+        if (remQty <= 0) {
+            return combinePromises(dmd, allPromises);
+        }
+
+        // Next check for own workcenter availability (if loading workcenter)
         DateRange res_dateRange = null;
         if (this.workcenters.size() > 0) {
-            res_dateRange = queryWorkcentersForEndBefore(req.getQuantity(), req.getDate(), req.getPlan());
+            res_dateRange = queryWorkcentersForEndBefore(remQty, due, p);
         }
         else {
-            long baseLT = getBaseLT(req.getQuantity());
-            LocalDateTime validStart = req.getDate().minusMinutes(baseLT);
-            LocalDateTime validEnd = req.getDate();
-            if (validStart.isBefore(req.getPlan().getStart())) {
-                validStart = req.getPlan().getStart();
+            long baseLT = getBaseLT(remQty);
+            LocalDateTime validStart = due.minusMinutes(baseLT);
+            LocalDateTime validEnd = due;
+            if (validStart.isBefore(p.getStart())) {
+                validStart = p.getStart();
                 validEnd = validStart.plusMinutes(baseLT);
             }
             res_dateRange = new DateRange(validStart, validEnd);
         }
 
+        Request reqDelta = new Request(dmd, remQty, res_dateRange.getStart(), p);
+
+        // Propagate the request to upstream tasks (predecessors) if any
+        // and plan based on upstream response.  Then send own promise
+        // to downstream requesting task/demand.
+        //
         if (this.pred != null) {
-            Request r = new Request(req.getID(), req.getQuantity(), res_dateRange.getStart(), req.getPlan());
-            Promise promise = this.pred.request(r);
-            return this.plan(req, promise);
+            Promise promise = this.pred.request(reqDelta);
+            allPromises.add(this.plan(reqDelta, promise));
         }
         else {
-            return this.plan(req, res_dateRange);
+            return this.plan(reqDelta, res_dateRange);
         }
+
+        return combinePromises(dmd, allPromises);
     }
 
     /**
@@ -479,14 +509,14 @@ public class Task {
                     " on workcenter " + this.workcenter,
                     DEBUG_LEVELS.DETAILED);
 
-        TaskPlan tp = new TaskPlan(this, req.getPlan(), this.workcenter, dr.getStart(), dr.getEnd(), req.getQuantity(), req.getID());
+        TaskPlan tp = new TaskPlan(this, req.getPlan(), this.workcenter, dr.getStart(), dr.getEnd(), req.getQuantity(), req.getDemand());
         this.plans.add(tp);
         if (this.workcenter != null) {
             this.workcenter.addTaskPlan(tp);
         }
         List<TaskPlan> tps = new ArrayList<TaskPlan>();
         tps.add(tp);
-        Promise p = new Promise(req.getID(), tps);
+        Promise p = new Promise(req.getDemand(), tps);
         return p;
     }
 
@@ -513,6 +543,14 @@ public class Task {
             }
         }
 
+        // If the upstream taskplans have overplanned, then reduce the
+        // current planned quantity to just the requested quantity
+        // No need to overplan
+        //
+        if (qty > req.getQuantity()) {
+            qty = req.getQuantity();
+        }
+
         DateRange res_dateRange = null;
         if (this.workcenters.size() > 0) {
             res_dateRange = queryWorkcentersForStartAfter(qty, start, req.getPlan());
@@ -533,16 +571,143 @@ public class Task {
                     res_dateRange.getEnd() + " on workcenter " + this.workcenter,
                     DEBUG_LEVELS.DETAILED);
 
-        TaskPlan tp = new TaskPlan(this, req.getPlan(), this.workcenter, res_dateRange.getStart(), res_dateRange.getEnd(), qty, req.getID());
+        TaskPlan tp = new TaskPlan(this, req.getPlan(), this.workcenter, res_dateRange.getStart(), res_dateRange.getEnd(), qty, req.getDemand());
         this.plans.add(tp);
         if (this.workcenter != null) {
             this.workcenter.addTaskPlan(tp);
         }
         List<TaskPlan> tps = new ArrayList<TaskPlan>();
         tps.add(tp);
-        Promise p = new Promise(req.getID(), tps);
+        Promise p = new Promise(req.getDemand(), tps);
         return p;
+    }
 
+    /**
+     * Checks ReleasedWorkOrders associated with this Task for available
+     * planned/released quantity first before trying to plan fresh
+     * @param req Request which we are trying to satisfy
+     * @return Promise representing the matching ReleasedWorkOrders
+     */
+     public Promise checkReleasedWorkOrdersForQuantity(Request req) {
+
+        Demand dmd = req.getDemand();
+        long origQty = req.getQuantity();
+        long remQty = origQty;
+        LocalDateTime due = req.getDate();
+        Plan p = req.getPlan();
+
+        List<Promise> allWOPromises = new ArrayList<Promise>();
+
+        // First check ReleasedWorkOrder that match demand of this request
+        // Search first from date of request to earlier dates
+        List<ReleasedWorkOrder> type1_WO = this.relworkorders.stream()
+                                   .filter(w -> w.getDemand() == dmd)
+                                   .filter(w -> (w.getEnd().isEqual(due) ||
+                                                 w.getEnd().isBefore(due)))
+                                   .sorted(Comparator.comparing(ReleasedWorkOrder::getEnd).reversed())
+                                   .collect(Collectors.toList());
+
+        for (ReleasedWorkOrder wo : type1_WO) {
+            if (remQty <= 0) {
+                break;
+            }
+            Request woReq = new Request(dmd, remQty, due, p);
+            Promise woPromise = wo.request(woReq);
+            allWOPromises.add(woPromise);
+            for (TaskPlan tp : woPromise.getTaskPlans()) {
+                remQty -= tp.getQuantity();
+            }
+        }
+
+        // Second check ReleasedWorkOrder that match demand of this request
+        // but have a date later than this request
+        List<ReleasedWorkOrder> type2_WO = this.relworkorders.stream()
+                                   .filter(w -> w.getDemand() == dmd)
+                                   .filter(w -> w.getEnd().isAfter(due))
+                                   .sorted(Comparator.comparing(ReleasedWorkOrder::getEnd))
+                                   .collect(Collectors.toList());
+
+        for (ReleasedWorkOrder wo : type2_WO) {
+            if (remQty <= 0) {
+                break;
+            }
+            Request woReq = new Request(dmd, remQty, due, p);
+            Promise woPromise = wo.request(woReq);
+            allWOPromises.add(woPromise);
+            for (TaskPlan tp : woPromise.getTaskPlans()) {
+                remQty -= tp.getQuantity();
+            }
+        }
+
+        // Third check ReleasedWorkOrders that are not attached to any demand
+        // Search first from date of request to earlier dates
+        List<ReleasedWorkOrder> type3_WO = this.relworkorders.stream()
+                                   .filter(w -> w.getDemand() == null)
+                                   .filter(w -> (w.getEnd().isEqual(due) ||
+                                                 w.getEnd().isBefore(due)))
+                                   .sorted(Comparator.comparing(ReleasedWorkOrder::getEnd).reversed())
+                                   .collect(Collectors.toList());
+
+        for (ReleasedWorkOrder wo : type3_WO) {
+            if (remQty <= 0) {
+                break;
+            }
+            Request woReq = new Request(dmd, remQty, due, p);
+            Promise woPromise = wo.request(woReq);
+            allWOPromises.add(woPromise);
+            for (TaskPlan tp : woPromise.getTaskPlans()) {
+                remQty -= tp.getQuantity();
+            }
+        }
+
+        // Fourth check ReleasedWorkOrder that match demand of this request
+        // but have a date later than this request
+        List<ReleasedWorkOrder> type4_WO = this.relworkorders.stream()
+                                   .filter(w -> w.getDemand() == null)
+                                   .filter(w -> w.getEnd().isAfter(due))
+                                   .sorted(Comparator.comparing(ReleasedWorkOrder::getEnd))
+                                   .collect(Collectors.toList());
+
+        for (ReleasedWorkOrder wo : type4_WO) {
+            if (remQty <= 0) {
+                break;
+            }
+            Request woReq = new Request(dmd, remQty, due, p);
+            Promise woPromise = wo.request(woReq);
+            allWOPromises.add(woPromise);
+            for (TaskPlan tp : woPromise.getTaskPlans()) {
+                remQty -= tp.getQuantity();
+            }
+        }
+
+        return combinePromises(dmd, allWOPromises);
+     }
+
+    /**
+     * Combine a list of Promises into a single promise
+     * @param dmd Demand for which these promises have been generated
+     * @param allPromises List<Promise> a list of input promises
+     * @return Promise combined promise
+     */
+     public Promise combinePromises(Demand dmd, List<Promise> allPromises) {
+
+        Promise finalPromise = new Promise(dmd, new ArrayList<TaskPlan>());
+
+        // Combine all promises to a single promise and return
+        for (Promise pr : allPromises) {
+            for (TaskPlan tp : pr.getTaskPlans()) {
+                finalPromise.addTaskPlan(tp);
+            }
+        }
+        return finalPromise;
+     }
+
+     /**
+     * Associates ReleasedWorkOrder for this Task
+     * @param wo ReleasedWorkOrder that for this Task
+     */
+    public void addReleasedWorkOrder(ReleasedWorkOrder wo) {
+        this.relworkorders.add(wo);
     }
 
     /**

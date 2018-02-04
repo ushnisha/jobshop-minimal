@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+      <title>JobShop Planner: Test Plan 0044</title>
+      <link rel="stylesheet" type="text/css" href="jobshop.css" />
+  </head>
+
+  <body>
+    <div class="main_container">
+
+       <h3>Test 0044:</h3>
+         <ul>
+           <li>This test has the two demands, both of them for the same part,
+               PART001, and both due on 2018-01-14, and both for 270 units.
+
+           <li>The demand for CUST001 has a priority of 1, while the demand 
+               for CUST002 has a priority of 2. That is, the demand for 
+               CUST001 has a higher priority and is planned first. 
+
+           <li>The RESOURCE_CONSTRAINED planning parameter is set to TRUE. 
+         </ul>
+
+         <h3>Variations from the Base Scenario:</h3>
+         <ul>
+             <li>Workcenter availability is a "hard constraint".
+
+             <li>A ReleasedWorkOrder of 300 units for PART001-OP20 loads
+                 RES003 between 2018-01-06 and 2018-01-07. It is specifically
+                 assigned to DMD002, the lower priority demand.
+
+             <li>Both demands are for the same part, PART001
+         </ul>
+
+         <h3>The expected result is as follows:</h3>
+
+         <ul>
+           <li>Both demands are satisfied on time.
+
+           <li>We can follow the constrained planning logic of by working
+               through the steps of planning the demands, one at a time.
+
+           <li>First we plan the SHIP for DMD001 (higher priority demand
+               and is planned first).  It needs to start on 2018-01-07 to
+               complete on time.  
+
+           <li>PART001-OP20 for DMD001 is planned afresh since the WIP is
+               specifically meant for DMD002.  So, we now plan PART001-OP20
+               for DMD001 to start 2018-01-05 and complete 2018-01-06.  We
+               then plan PART001-OP10 for DMD001 to start 2018-01-04 and to
+               complete 2018-01-05.
+
+           <li>Next we plan the SHIP for DMD002.  It needs to start on 2018-01-07
+               to complete just in time.  PART001-OP20 for DMD002 can use the WIP
+               and it is planned exactly on time (JIT).  There is no need to create
+               any plan for PART001-OP10 for DMD002.
+
+           <li>Notice that since the ReleasedWorkOrder was assigned to
+               DMD002, the higher priority demand cannot consume from it and has to
+               be planned in full (and early) while the lower priority demand uses up
+               the WIP when it is planned.
+         </ul>
+
+         <pre>
+<strong>Demands:</strong>
+PART001-DMD001; Priority: 1; Due: 270 on 2018-01-14T00:00; Planned: 270 on 2018-01-13T00:00
+PART001-DMD002; Priority: 2; Due: 270 on 2018-01-14T00:00; Planned: 270 on 2018-01-14T00:00
+
+<strong>TaskPlans:</strong>
+PART001-OP10 [ 2018-01-04T00:00 - 2018-01-05T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+PART001-OP20 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
+PART001-OP20 [ 2018-01-06T00:00 - 2018-01-07T00:00] Qty: 300; DemandID: DMD002; Plan: Basic Plan; Loads: RES003; RWO: WO001-1
+PART001-SHIP [ 2018-01-06T00:00 - 2018-01-13T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: null
+PART001-SHIP [ 2018-01-07T00:00 - 2018-01-14T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: null
+
+<strong>WorkcenterPlans:</strong>
+RES001
+ - PART001-OP10 [ 2018-01-04T00:00 - 2018-01-05T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES001
+RES002
+RES003
+ - PART001-OP20 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003
+ - PART001-OP20 [ 2018-01-06T00:00 - 2018-01-07T00:00] Qty: 300; DemandID: DMD002; Plan: Basic Plan; Loads: RES003; RWO: WO001-1
+         </pre>
+
+    </div>
+
+  </body>
+
+</html>

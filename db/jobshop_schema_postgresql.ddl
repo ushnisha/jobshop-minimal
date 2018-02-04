@@ -128,20 +128,43 @@ create table demand (
     foreign key(skuid) references sku(skuid)
 );
 
-drop table if exists taskplan cascade;
-create table taskplan (
-    lotid serial primary key,
+drop table if exists relworkorder cascade;
+create table relworkorder (
     planid varchar(100) not null,
-    demandid varchar(100) not null,
+    workorderid varchar(100) not null,
+    lotid integer not null,
     skuid varchar(100) not null,
     taskid varchar(100) not null,
     startdate timestamp not null,
     enddate timestamp not null,
     quantity integer not null,
     workcenterid varchar(100),
+    demandid varchar(100),
     date_created timestamp not null DEFAULT CURRENT_TIMESTAMP,
+    primary key(planid, workorderid, lotid),
+    unique (planid, workorderid, skuid, taskid, startdate, enddate, workcenterid, demandid),
+    foreign key(planid) references plan(planid),
     foreign key(planid, demandid) references demand(planid, demandid),
     foreign key(skuid, taskid) references task(skuid, taskid),
     foreign key(workcenterid) references workcenter(workcenterid)
 );
 
+drop table if exists taskplan cascade;
+create table taskplan (
+    taskplanid serial primary key,
+    planid varchar(100) not null,
+    demandid varchar(100),
+    skuid varchar(100) not null,
+    taskid varchar(100) not null,
+    startdate timestamp not null,
+    enddate timestamp not null,
+    quantity integer not null,
+    workcenterid varchar(100),
+    workorderid varchar(100),
+    lotid integer,
+    date_created timestamp not null DEFAULT CURRENT_TIMESTAMP,
+    foreign key(planid) references plan(planid),
+    foreign key(planid, demandid) references demand(planid, demandid),
+    foreign key(skuid, taskid) references task(skuid, taskid),
+    foreign key(workcenterid) references workcenter(workcenterid)
+);

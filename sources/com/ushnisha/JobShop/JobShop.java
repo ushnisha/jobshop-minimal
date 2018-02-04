@@ -81,6 +81,7 @@ public class JobShop {
     private Map<String,Task> tasks;
     private Map<Task,TaskPlan> taskplans;
     private Map<String,Workcenter> workcenters;
+    private Map<String,ReleasedWorkOrder> relworkorders;
 
     private Map<String,String> options;
     private String datadir;
@@ -216,7 +217,7 @@ public class JobShop {
 
     /**
      * Constructor for the JobShop object
-     * @param n Map<String,String> representing the options used to
+     * @param args String[] representing the options used to
      *          read the dataset and create the JobShop model.
      */
     public JobShop(String[] args) {
@@ -228,6 +229,7 @@ public class JobShop {
         this.tasks = new HashMap<String,Task>();
         this.taskplans = new HashMap<Task,TaskPlan>();
         this.workcenters = new HashMap<String,Workcenter>();
+        this.relworkorders = new HashMap<String,ReleasedWorkOrder>();
 
         this.options = new HashMap<String, String>();
         this.datadir = "";
@@ -543,6 +545,7 @@ public class JobShop {
         readDemands();
         readTaskPrecedences();
         readTaskWorkcenterAssociations();
+        readReleasedWorkOrders();
     }
 
     /**
@@ -574,7 +577,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
                         continue;
                     }
-                    String[] parts = p.split(",");
+                    String[] parts = p.split(",", -1);
 
                     if (plans.containsKey(parts[0])) {
                         JobShop.LOG("Plan already exists: " + p);
@@ -640,7 +643,7 @@ public class JobShop {
                     if (p.charAt(0) == '#') {
                         continue;
                     }
-                    String[] parts = p.split(",");
+                    String[] parts = p.split(",", -1);
                     Plan plan = plans.get(parts[0]);
                     plan.setParam(parts[1], parts[2]);
                 }
@@ -697,7 +700,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
                         continue;
                     }
-                    String[] parts = p.split(",");
+                    String[] parts = p.split(",", -1);
 
                     if (skus.containsKey(parts[0])) {
                         JobShop.LOG("SKU already exists: " + p);
@@ -761,7 +764,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
                         continue;
                     }
-                    String[] parts = p.split(",");
+                    String[] parts = p.split(",", -1);
 
                     if (calendars.containsKey(parts[0])) {
                         JobShop.LOG("Calendar already exists: " + p);
@@ -825,7 +828,7 @@ public class JobShop {
                     if (p.charAt(0) == '#') {
                         continue;
                     }
-                    String[] parts = p.split(",");
+                    String[] parts = p.split(",", -1);
                     Calendar cal = calendars.get(parts[0]);
                     assert(cal != null);
 
@@ -896,7 +899,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
                         continue;
                     }
-                    String[] parts = p.split(",");
+                    String[] parts = p.split(",", -1);
                     Calendar cal = calendars.get(parts[1]);
                     assert(cal != null);
 
@@ -966,7 +969,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
                         continue;
                     }
-                    String[] parts = p.split(",");
+                    String[] parts = p.split(",", -1);
                     SKU sku = skus.get(parts[1]);
                     assert(sku != null);
                     String taskNum = parts[1] + "-" + parts[0];
@@ -1056,7 +1059,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
                         continue;
                     }
-                    String[] parts = p.split(",");
+                    String[] parts = p.split(",", -1);
 
                     Plan plan = plans.get(parts[0]);
                     assert(plan != null);
@@ -1141,7 +1144,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
                         continue;
                     }
-                    String[] parts = p.split(",");
+                    String[] parts = p.split(",", -1);
                     Task succ = tasks.get(parts[1] + "-" + parts[0]);
                     Task pred = tasks.get(parts[1] + "-" + parts[2]);
 
@@ -1229,7 +1232,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
                         continue;
                     }
-                    String[] parts = p.split(",");
+                    String[] parts = p.split(",", -1);
                     Task t = tasks.get(parts[1] + "-" + parts[0]);
                     Workcenter w = workcenters.get(parts[2]);
                     Integer priority = new Integer(parts[3]);
@@ -1269,6 +1272,122 @@ public class JobShop {
                     assert(w != null);
 
                     t.addWorkcenter(w, pri);
+                }
+            }
+            catch (SQLException e) {
+                JobShop.LOG(e.getMessage());
+            }
+        }
+
+    }
+
+    /**
+     * Utility function to create the ReleasedWorkOrder objects
+     */
+    private void readReleasedWorkOrders() {
+
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
+            JobShop.LOG("Reading released workorder data...", true);
+		}
+
+        String mode = this.options.get("input_mode");
+
+        if (mode.equals("FLATFILE")) {
+            Path path = Paths.get(this.datadir + "/relworkorder.csv");
+
+            if (cleandata) {
+                goodFile = Paths.get(JobShop.logDir.toString() + "/relworkorder.good");
+                badFile = Paths.get(JobShop.logDir.toString() + "/relworkorder.bad");
+            }
+
+            try {
+                List<String> lines = new ArrayList<String>();
+                lines = Files.readAllLines(path, charset);
+
+                for (int n = 0; n < lines.size(); n++) {
+                    String p = lines.get(n).trim();
+                    if (p.charAt(0) == '#') {
+                        if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                        continue;
+                    }
+                    String[] parts = p.split(",", -1);
+
+                    Plan pln = plans.get(parts[0]);
+                    String woid = parts[1];
+                    Integer lotid = Integer.valueOf(parts[2]);
+                    Task t = tasks.get(parts[3] + "-" + parts[4]);
+                    Workcenter w = workcenters.get(parts[8]);
+                    Demand d = demands.get(parts[9]);
+                    long quantity = Long.parseLong(parts[7]);
+                    LocalDateTime st = LocalDateTime.parse(parts[5], dfs);
+                    LocalDateTime en = LocalDateTime.parse(parts[6], dfs);
+
+                    if(t == null) {
+                        JobShop.LOG("Task does not exist in released workorder: " + p);
+                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        continue;
+                    }
+
+                    if(parts[8].length() > 0 && w == null) {
+                        JobShop.LOG("Workcenter does not exist in released workorder: " + p);
+                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        continue;
+                    }
+
+                    if(parts[9].length() > 0 && d == null) {
+                        JobShop.LOG("Demand does not exist in released workorder: " + p);
+                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        continue;
+                    }
+
+                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+
+                    ReleasedWorkOrder rwo = new ReleasedWorkOrder(woid,
+                                                 lotid, t, pln, w,
+                                                 st, en, quantity, d);
+
+                    String wo_uniq_id = woid + "-" + lotid.toString();
+                    relworkorders.put(wo_uniq_id, rwo);
+                    t.addReleasedWorkOrder(rwo);
+                }
+            } catch (IOException e) {
+                JobShop.LOG(e.getMessage());
+            }
+        }
+        else if (mode.equals("DATABASE")) {
+            try {
+                ResultSet rs = statement.executeQuery("select * from relworkorder");
+                while (rs.next()) {
+                    String planid = rs.getString("planid");
+                    String woid = rs.getString("workorderid");
+                    Integer lotid = Integer.valueOf(rs.getInt("lotid"));
+                    String taskid = rs.getString("taskid");
+                    String skuid = rs.getString("skuid");
+                    String wrkid = rs.getString("workcenterid");
+                    Timestamp st = rs.getTimestamp("startdate");
+                    Timestamp en = rs.getTimestamp("enddate");
+                    long qty = rs.getLong("quantity");
+                    String dmdid = rs.getString("demandid");
+
+                    Plan pln = plans.get(planid);
+                    Task t = tasks.get(skuid + "-" + taskid);
+                    Workcenter w = workcenters.get(wrkid);
+                    Demand d = demands.get(dmdid);
+
+                    assert(t != null);
+                    assert(wrkid.length() > 0 || w != null);
+                    assert(pln != null);
+                    assert(dmdid.length() > 0 || d != null);
+
+                    ReleasedWorkOrder rwo = new ReleasedWorkOrder(woid,
+                                                 lotid, t, pln, w,
+                                                 st.toLocalDateTime(),
+                                                 en.toLocalDateTime(),
+                                                 qty, d);
+
+                    String wo_uniq_id = woid + "-" + lotid.toString();
+                    relworkorders.put(wo_uniq_id, rwo);
+                    t.addReleasedWorkOrder(rwo);
                 }
             }
             catch (SQLException e) {
@@ -1354,8 +1473,8 @@ public class JobShop {
 
             String stmt = "insert into taskplan " +
                           "(planid, demandid, skuid, taskid, startdate," +
-                          " enddate, quantity, workcenterid) values " +
-                          "(?, ?, ?, ?, ?, ?, ?, ?)";
+                          " enddate, quantity, workcenterid, workorderid, lotid) values " +
+                          "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try {
                 // First delete all existing records in the TaskPlan table (from prior runs)
                 statement.executeUpdate(delStmt);
@@ -1374,7 +1493,12 @@ public class JobShop {
                                             .collect(Collectors.toList());
                     for (TaskPlan tp : tps) {
                         pStmt.setString(1, tp.getPlan().getID());
-                        pStmt.setString(2, tp.getDemandID());
+                        if (tp.getDemand() != null) {
+                            pStmt.setString(2, tp.getDemand().getID());
+                        }
+                        else {
+                            pStmt.setNull(2, java.sql.Types.VARCHAR);
+                        }
                         pStmt.setString(3, tp.getTask().getSKU().getName());
                         pStmt.setString(4, tp.getTask().getTaskID());
                         pStmt.setTimestamp(5, Timestamp.valueOf(tp.getStart()));
@@ -1385,6 +1509,15 @@ public class JobShop {
                         }
                         else {
                             pStmt.setNull(8, java.sql.Types.VARCHAR);
+                        }
+
+                        if (tp.getReleasedWorkOrder() != null) {
+                            pStmt.setString(9, tp.getReleasedWorkOrder().getID());
+                            pStmt.setInt(10, tp.getReleasedWorkOrder().getLotID(tp).intValue());
+                        }
+                        else {
+                            pStmt.setNull(9, java.sql.Types.VARCHAR);
+                            pStmt.setNull(10, java.sql.Types.INTEGER);
                         }
 
                         // Customization for SQLITE (which cannot handle TimeStamps)

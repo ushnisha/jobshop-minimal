@@ -1,0 +1,7 @@
+#taskid,skuid,setup_time,per_unit_time,min_lot_size,max_lot_size,is_delivery_task
+SHIP,PART001,10080,0,0,10000,T
+OP10,PART001,90,5,1,10000,F
+OP20,PART001,90,5,1,10000,F
+SHIP,PART002,10080,0,0,10000,T
+OP10,PART002,90,5,1,10000,F
+OP20,PART002,90,5,1,10000,F

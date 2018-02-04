@@ -150,7 +150,7 @@ public class Demand {
 
         JobShop.LOG("Planning for demand: " + this.id, DEBUG_LEVELS.DETAILED);
 
-        Request req = new Request(this.id, this.dueqty, this.duedate, this.plan);
+        Request req = new Request(this, this.dueqty, this.duedate, this.plan);
         Promise promise = this.sku.getDeliveryTask().request(req);
         this.delivery_taskplans = promise.getTaskPlans();
         this.updatePlanData();

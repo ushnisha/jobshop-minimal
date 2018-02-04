@@ -22,6 +22,7 @@
  */
 
 delete FROM taskplan;
+delete FROM relworkorder;
 delete FROM demand;
 delete FROM taskworkcenterassn;
 delete FROM taskprecedence;
@@ -52,3 +53,5 @@ LOAD DATA LOCAL INFILE 'taskprecedence.csv' INTO TABLE taskprecedence FIELDS TER
 LOAD DATA LOCAL INFILE 'taskworkcenterassn.csv' INTO TABLE taskworkcenterassn FIELDS TERMINATED BY ',' IGNORE 1 LINES (taskid, skuid, workcenterid, priority);
 
 LOAD DATA LOCAL INFILE 'demand.csv' INTO TABLE demand FIELDS TERMINATED BY ',' IGNORE 1 LINES (planid, demandid, customerid, skuid, duedate, duequantity, priority);
+
+LOAD DATA LOCAL INFILE 'relworkorder.csv' INTO TABLE relworkorder FIELDS TERMINATED BY ',' IGNORE 1 LINES (planid, workorderid, lotid, skuid, taskid, startdate, enddate, quantity, workcenterid, demandid);

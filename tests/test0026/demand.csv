@@ -1,0 +1,3 @@
+#planid,demandid,customerid,skuid,duedate,duequantity,priority
+Basic Plan,DMD001,CUST001,PART001,2018-01-14 00:00:00,270,1
+Basic Plan,DMD002,CUST001,PART002,2018-01-14 00:00:00,270,2

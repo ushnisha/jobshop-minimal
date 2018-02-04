@@ -118,19 +118,40 @@ create table _demand_staging (
     foreign key(skuid) references _sku_staging(skuid)
 );
 
+drop table if exists _relworkorder_staging;
+create table _relworkorder_staging (
+    planid varchar(100) not null,
+    workorderid varchar(100) not null,
+    lotid integer not null,
+    skuid varchar(100) not null,
+    taskid varchar(100) not null,
+    startdate timestamp not null,
+    enddate timestamp not null,
+    quantity integer not null,
+    workcenterid varchar(100),
+    demandid varchar(100),
+    primary key(planid, workorderid, lotid),
+    foreign key(planid) references _plan_staging(planid),
+    foreign key(planid, demandid) references _demand_staging(planid, demandid)
+    foreign key(skuid, taskid) references _task_staging(skuid, taskid),
+    foreign key(workcenterid) references _workcenter_staging(workcenterid)
+);
+
 drop table if exists _taskplan_staging;
 create table _taskplan_staging (
-    lotid integer primary key autoincrement,
+    taskplanid integer primary key autoincrement,
     planid varchar(100) not null,
-    demandid varchar(100) not null,
+    demandid varchar(100),
     skuid varchar(100) not null,
     taskid varchar(100) not null,
     startdate datetime not null,
     enddate datetime not null,
     quantity integer not null,
     workcenterid varchar(100),
+    workorderid varchar(100),
+    lotid integer,
+    foreign key(planid) references _plan_staging(demandid),
     foreign key(planid, demandid) references _demand_staging(planid, demandid),
     foreign key(skuid, taskid) references _task_staging(skuid, taskid),
     foreign key(workcenterid) references _workcenter_staging(workcenterid)
 );
-

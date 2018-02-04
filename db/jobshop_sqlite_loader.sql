@@ -31,6 +31,7 @@ delete from _task_staging;
 delete from _taskprecedence_staging;
 delete from _taskworkcenterassn_staging;
 delete from _demand_staging;
+delete from _relworkorder_staging;
 delete from _taskplan_staging;
 
 .separator ,
@@ -44,6 +45,7 @@ delete from _taskplan_staging;
 .import taskprecedence.csv _taskprecedence_staging
 .import taskworkcenterassn.csv _taskworkcenterassn_staging
 .import demand.csv _demand_staging
+.import relworkorder.csv _relworkorder_staging
 
 delete from plan;
 delete from planparameter;
@@ -55,6 +57,7 @@ delete from task;
 delete from taskprecedence;
 delete from taskworkcenterassn;
 delete from demand;
+delete from relworkorder;
 delete from taskplan;
 
 insert into plan (planid, planstart, planend)
@@ -103,6 +106,12 @@ insert into demand (planid, demandid, customerid, skuid, duedate,
 select planid, demandid, customerid, skuid, duedate, duequantity, priority
 from _demand_staging;
 
+insert into relworkorder (planid, workorderid, lotid, taskid, skuid, startdate,
+                          enddate, quantity, workcenterid, demandid)
+select planid, workorderid, lotid, taskid, skuid, startdate, enddate,
+       quantity, workcenterid, demandid
+from _relworkorder_staging;
+
 drop table if exists _plan_staging;
 drop table if exists _planparameter_staging;
 drop table if exists _sku_staging;
@@ -113,6 +122,7 @@ drop table if exists _task_staging;
 drop table if exists _taskprecedence_staging;
 drop table if exists _taskworkcenterassn_staging;
 drop table if exists _demand_staging;
+drop table if exists _relworkorder_staging;
 drop table if exists _taskplan_staging;
 
 /* Update tables with timestamp fields to have JDBC driver compliant formats */
@@ -120,5 +130,6 @@ update plan set planstart=strftime('%Y-%m-%d %H:%M:%f', planstart);
 update plan set planend=strftime('%Y-%m-%d %H:%M:%f', planend);
 update calendarshift set shiftstart=strftime('%Y-%m-%d %H:%M:%f', shiftstart);
 update calendarshift set shiftend=strftime('%Y-%m-%d %H:%M:%f', shiftend);
+update relworkorder set startdate=strftime('%Y-%m-%d %H:%M:%f', startdate);
+update relworkorder set enddate=strftime('%Y-%m-%d %H:%M:%f', enddate);
 update demand set duedate=strftime('%Y-%m-%d %H:%M:%f', duedate);
-

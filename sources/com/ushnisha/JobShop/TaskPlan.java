@@ -38,7 +38,9 @@ public class TaskPlan {
     private LocalDateTime start;
     private LocalDateTime end;
     private long quantity;
-    private String demandID;
+    private Demand demand;
+    private boolean isReleased;
+    private ReleasedWorkOrder relworkorder;
 
     /**
      * Constructor for the TaskPlan object
@@ -49,19 +51,74 @@ public class TaskPlan {
      * @param st LocalDateTime representing the start of this task
      * @param en LocalDateTime representing the end of this task
      * @param qty long value representing the quantity for which this TaskPlan is created
-     * @param dID String representing the unique identity of the Demand for which
-     *            we are creating this TaskPlan
+     * @param dmd Demand for which we are creating this TaskPlan
      */
     public TaskPlan(Task t, Plan p, Workcenter w,
                     LocalDateTime st, LocalDateTime en,
-                    long qty, String dID) {
+                    long qty, Demand dmd) {
         this.task = t;
         this.plan = p;
         this.workcenter = w;
         this.start = st;
         this.end = en;
         this.quantity = qty;
-        this.demandID = dID;
+        this.demand = dmd;
+        this.isReleased = false;
+        this.relworkorder = null;
+    }
+
+    /**
+     * Constructor for the TaskPlan object
+     * @param t Task for which we are creating a TaskPlan instance
+     * @param p Plan model under which we are planning this TaskPlan
+     * @param w Workcenter that we are loading this task.
+     *          This may be null if the task does not load a workcenter
+     * @param st LocalDateTime representing the start of this task
+     * @param en LocalDateTime representing the end of this task
+     * @param qty long value representing the quantity for which this TaskPlan is created
+     * @param rwo ReleasedWorkOrder representing the unique identity of the Demand for which
+     *            we are creating this TaskPlan
+     */
+    public TaskPlan(Task t, Plan p, Workcenter w,
+                    LocalDateTime st, LocalDateTime en,
+                    long qty, ReleasedWorkOrder rwo) {
+        this.task = t;
+        this.plan = p;
+        this.workcenter = w;
+        this.start = st;
+        this.end = en;
+        this.quantity = qty;
+        this.isReleased = true;
+        this.relworkorder = rwo;
+        this.demand = this.relworkorder.getDemand();
+    }
+
+    /**
+     * Constructor for the TaskPlan object
+     * @param t Task for which we are creating a TaskPlan instance
+     * @param p Plan model under which we are planning this TaskPlan
+     * @param w Workcenter that we are loading this task.
+     *          This may be null if the task does not load a workcenter
+     * @param st LocalDateTime representing the start of this task
+     * @param en LocalDateTime representing the end of this task
+     * @param qty long value representing the quantity for which this
+     *            TaskPlan is created
+     * @param dmd Demand associated with the ReleasedWorkOrder for
+     *            which we are creating this TaskPlan
+     * @param rwo ReleasedWorkOrder for which we are creating this TaskPlan
+     */
+    public TaskPlan(Task t, Plan p, Workcenter w,
+                    LocalDateTime st, LocalDateTime en,
+                    long qty, Demand dmd, ReleasedWorkOrder rwo) {
+        this.task = t;
+        this.plan = p;
+        this.workcenter = w;
+        this.start = st;
+        this.end = en;
+        this.quantity = qty;
+        this.demand = dmd;
+        this.isReleased = true;
+        this.relworkorder = rwo;
     }
 
     /**
@@ -89,6 +146,14 @@ public class TaskPlan {
     }
 
     /**
+     * Updates the quantity for this TaskPlan
+     * @param qty representing the new quantity of the TaskPlan
+     */
+    public void setQuantity(long qty) {
+        this.quantity = qty;
+    }
+
+    /**
      * Returns the Plan for which we are creating this TaskPlan
      * @return Plan for which we are creating this TaskPlan
      */
@@ -103,7 +168,28 @@ public class TaskPlan {
      *         for which we are creating this TaskPlan
      */
     public String getDemandID() {
-        return this.demandID;
+        if (this.demand == null) {
+            return "null";
+        }
+        else {
+            return this.demand.getID();
+        }
+    }
+
+    /**
+     * Get the demand of this TaskPlan
+     * @return Demand with which to associate this TaskPlan
+     */
+    public Demand getDemand() {
+        return this.demand;
+    }
+
+    /**
+     * Sets the demand of this TaskPlan
+     * @param dmd Demand with which to associate this TaskPlan
+     */
+    public void setDemand(Demand dmd) {
+        this.demand = dmd;
     }
 
     /**
@@ -120,6 +206,14 @@ public class TaskPlan {
      */
     public Workcenter getWorkcenter() {
         return this.workcenter;
+    }
+
+    /**
+     * Returns the ReleasedWorkOrder that this TaskPlan is a planned for
+     * @return ReleasedWorkOrder based on which this TaskPlan was created
+     */
+    public ReleasedWorkOrder getReleasedWorkOrder() {
+        return this.relworkorder;
     }
 
     /**
@@ -153,10 +247,15 @@ public class TaskPlan {
      * @return String value representing the TaskPlan for output/log purposes
      */
     public String toString() {
-        return this.task.getTaskNumber() + " [ " + this.start + " - " + 
-               this.end + "] Qty: " + this.quantity + 
-               "; DemandID: " + this.demandID + 
-               "; Plan: " + this.plan.getID() +
-               "; Loads: " + this.workcenter;
+        String outStr = this.task.getTaskNumber() + " [ " +
+                        this.start + " - " + this.end + "] Qty: " +
+                        this.quantity + "; DemandID: " +
+                        this.getDemandID() +"; Plan: " +
+                        this.plan.getID() + "; Loads: " + this.workcenter;
+
+        if (this.isReleased) {
+            outStr += "; RWO: " + this.relworkorder.getID() + "-" + this.relworkorder.getLotID(this);
+        }
+        return outStr;
     }
 }

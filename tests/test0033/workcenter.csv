@@ -1,0 +1,4 @@
+#workcenterid,efficiency_calendar,max_setups_per_shift,criticality_index
+RES001,DefaultEfficiencyCalendar,3,1
+RES002,DefaultEfficiencyCalendar,3,1
+RES003,DefaultEfficiencyCalendar,3,1

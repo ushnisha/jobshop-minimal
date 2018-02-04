@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+      <title>JobShop Planner: Test Plan 0024</title>
+      <link rel="stylesheet" type="text/css" href="jobshop.css" />
+  </head>
+
+  <body>
+    <div class="main_container">
+
+       <h3>Test 0024:</h3>
+         <ul>
+           <li>This test has the two demands, one for each part, both due 
+               on 2018-01-14, and both for 270 units.
+
+           <li>The demand for PART001 has a priority of 1, while the demand 
+               for PART002 has a priority of 2. That is, the demand for 
+               PART001 has a higher priority and is planned first. 
+
+           <li>The RESOURCE_CONSTRAINED planning parameter is set to TRUE. 
+         </ul>
+
+         <h3>Variations from the Base Scenario:</h3>
+         <ul>
+             <li>Workcenter availability is a "hard constraint".
+
+             <li>A ReleasedWorkOrder of 270 units for PART001-OP20 loads
+                 RES003 between 2018-01-07 and 2018-01-08. It is not
+                 assigned to any specific demandID.
+
+             <li>Note that the ReleasedWorkOrder runs one day later than
+                 the JIT date (as in test0022).
+         </ul>
+
+         <h3>The expected result is as follows:</h3>
+
+         <ul>
+           <li>Demand for PART001 is delivered late; PART002 is met on time.
+
+           <li>We can follow the constrained planning logic of by working
+               through the steps of planning the demands, one at a time.
+
+           <li>First we plan the SHIP for PART001 (higher priority demand
+               and is planned first).  It needs to start on 2018-01-07 to
+               complete on time.  
+
+           <li>PART001-OP20 is not planned afresh; instead the solver uses
+               the ReleasedWorkOrder completing on 2018-01-08 for the same
+               quantity as the demand (270).  As a result, we don't need
+               to plan PART001-OP10. Since the ReleasedWorkOrder for PART001-OP20
+               is one day later than the JIT date, we also ship one day later
+               and meet the demand one day later than due.
+
+           <li>It is important to note the default behavior of the solver when
+               matching WIP/ReleasedWorkOrders.  Even if it is possible for the
+               solver to plan a new TaskPlan and meet the demand on time, the
+               default behavior is always to consume WIP/ReleasedWorkOrders first,
+               even if this results in a delay in delivering the demand. Think of
+               WIP as an override on the solver by the people on the shop floor
+               know more than the solver, and that is why they created
+               this later WIP.
+
+           <li>Next we plan the SHIP for PART002.  It needs to start on 2018-01-07
+               to complete just in time.  As a result OP20 for PART002 is planned
+               to start on 2018-01-06. Note that since the WorkOrder for PART001-OP20
+               was planned on 2018-01-07, this date is now available for PART002-OP20.
+               Consequently, OP10 for PART002 is also planned JIT and starts on 2018-01-05.
+
+             <li>In this case, PART001 demand is delivered late (as a result of matching
+                 later WIP for PART001-OP20) and PART002 is delivered on time.
+         </ul>
+
+         <pre>
+<strong>Demands:</strong>
+PART001-DMD001; Priority: 1; Due: 270 on 2018-01-14T00:00; Planned: 270 on 2018-01-15T00:00
+PART002-DMD002; Priority: 2; Due: 270 on 2018-01-14T00:00; Planned: 270 on 2018-01-14T00:00
+
+<strong>TaskPlans:</strong>
+PART001-OP20 [ 2018-01-07T00:00 - 2018-01-08T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003; RWO: WO001-1
+PART001-SHIP [ 2018-01-08T00:00 - 2018-01-15T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: null
+PART002-OP10 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES001
+PART002-OP20 [ 2018-01-06T00:00 - 2018-01-07T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+PART002-SHIP [ 2018-01-07T00:00 - 2018-01-14T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: null
+
+<strong>WorkcenterPlans:</strong>
+RES001
+ - PART002-OP10 [ 2018-01-05T00:00 - 2018-01-06T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES001
+RES002
+RES003
+ - PART002-OP20 [ 2018-01-06T00:00 - 2018-01-07T00:00] Qty: 270; DemandID: DMD002; Plan: Basic Plan; Loads: RES003
+ - PART001-OP20 [ 2018-01-07T00:00 - 2018-01-08T00:00] Qty: 270; DemandID: DMD001; Plan: Basic Plan; Loads: RES003; RWO: WO001-1
+
+         </pre>
+
+    </div>
+
+  </body>
+
+</html>

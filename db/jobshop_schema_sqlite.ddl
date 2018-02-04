@@ -21,6 +21,20 @@
  *
  */
 
+drop table if exists taskplan;
+drop table if exists relworkorder;
+drop table if exists demand;
+drop table if exists taskworkcenterassn;
+drop table if exists taskprecedence;
+drop table if exists workcenter;
+drop table if exists task;
+drop table if exists sku;
+drop table if exists calendarshift;
+drop table if exists calendar;
+drop table if exists planparameter;
+drop table if exists plan;
+
+
 drop table if exists plan;
 create table plan (
     planid varchar(100) primary key not null,
@@ -128,20 +142,43 @@ create table demand (
     foreign key(skuid) references sku(skuid)
 );
 
-drop table if exists taskplan;
-create table taskplan (
-    lotid integer primary key autoincrement,
+drop table if exists relworkorder;
+create table relworkorder (
     planid varchar(100) not null,
-    demandid varchar(100) not null,
+    workorderid varchar(100) not null,
+    lotid integer not null,
     skuid varchar(100) not null,
     taskid varchar(100) not null,
     startdate timestamp not null,
     enddate timestamp not null,
     quantity integer not null,
     workcenterid varchar(100),
+    demandid varchar(100),
     date_created timestamp not null DEFAULT CURRENT_TIMESTAMP,
+    primary key(planid, workorderid, lotid),
+    UNIQUE(planid, workorderid, skuid, taskid, startdate, enddate, workcenterid, demandid) on conflict fail,
+    foreign key(planid) references plan(planid),
     foreign key(planid, demandid) references demand(planid, demandid),
     foreign key(skuid, taskid) references task(skuid, taskid),
     foreign key(workcenterid) references workcenter(workcenterid)
 );
 
+drop table if exists taskplan;
+create table taskplan (
+    taskplanid integer primary key autoincrement,
+    planid varchar(100) not null,
+    demandid varchar(100),
+    skuid varchar(100) not null,
+    taskid varchar(100) not null,
+    startdate timestamp not null,
+    enddate timestamp not null,
+    quantity integer not null,
+    workcenterid varchar(100),
+    workorderid varchar(100),
+    lotid integer,
+    date_created timestamp not null DEFAULT CURRENT_TIMESTAMP,
+    foreign key(planid) references plan(planid),
+    foreign key(planid, demandid) references demand(planid, demandid),
+    foreign key(skuid, taskid) references task(skuid, taskid),
+    foreign key(workcenterid) references workcenter(workcenterid)
+);

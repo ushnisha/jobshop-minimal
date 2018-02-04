@@ -25,7 +25,7 @@ import copy
 
 def usage():
     print "Usage: python load_sqlite_db.py <load sequence filename> <path to dbfile> <path to dataset directory>"
-    print "For example: python load_sqlite_db.py scripts/load_sequence.txt db/jobshop.db tests/test0001"
+    print "For example: python load_sqlite_db.py scripts/load_sequence.dat db/jobshop.db tests/test0001"
     exit(1)
 
 def emptydatabasetable (connection, tablename):
@@ -119,6 +119,8 @@ if __name__ == "__main__":
              "update plan set planend=strftime('%Y-%m-%d %H:%M:%f', planend)",
              "update calendarshift set shiftstart=strftime('%Y-%m-%d %H:%M:%f', shiftstart)",
              "update calendarshift set shiftend=strftime('%Y-%m-%d %H:%M:%f', shiftend)",
+             "update relworkorder set startdate=strftime('%Y-%m-%d %H:%M:%f', startdate)",
+             "update relworkorder set enddate=strftime('%Y-%m-%d %H:%M:%f', enddate)",
              "update demand set duedate=strftime('%Y-%m-%d %H:%M:%f', duedate)" ]
 
     for s in stmt:

@@ -1,3 +1,26 @@
+/**
+ **********************************************************************
+   Copyright (c) 2017-2018 Arun Kunchithapatham
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as published
+   by the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+   Contributors:
+   Arun Kunchithapatham - Initial Contribution
+ ***********************************************************************
+ *
+ */
+
 package com.ushnisha.JobShop;
 
 import java.time.LocalDateTime;
@@ -9,28 +32,37 @@ import java.time.LocalDateTime;
  */
 public class Request {
 
-    private String id;
+    private Demand demand;
     private long quantity;
     private LocalDateTime date;
     private Plan plan;
 
     /**
      * Construtor for the request
-     * @param id String representation of the request ID.  It is assumed
-     *           that this id will correspond to a unique demand identifier
-     *           of the demand for which this Request is being made
+     * @param dmd Demand representing the demand for which we are creating
+     *            this request.
      * @param qty long value of the quantity being demanded
      * @param dt LocalDateTime representing the date by which this Request
      *           must be satisfied
      * @param p Plan instance that provides additional constraints that
      *          must be used during planning to satisfy this Request
      */
-    public Request (String id, long qty, LocalDateTime dt, Plan p) {
-        this.id = id;
+    public Request (Demand dmd, long qty, LocalDateTime dt, Plan p) {
+        this.demand = dmd;
         this.quantity = qty;
         this.date = dt;
         this.plan = p;
     }
+
+    /**
+     * Returns the demand for which this Request is being made
+     * @return Demand value representing the unique Demand
+     *         for which the Request was created
+     */
+    public Demand getDemand() {
+        return this.demand;
+    }
+
 
     /**
      * Returns the unique ID of the demand for which this Request is being made
@@ -38,7 +70,7 @@ public class Request {
      *         for which the Request was created
      */
     public String getID() {
-        return this.id;
+        return this.demand.getID();
     }
 
     /**
