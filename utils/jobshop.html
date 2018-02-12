@@ -1,0 +1,58 @@
+<!--
+ **********************************************************************
+   Copyright (c) 2017-2018 Arun Kunchithapatham
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as published
+   by the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+   Contributors:
+   Arun Kunchithapatham - Initial Contribution
+ ***********************************************************************
+ *
+ -->
+ 
+ <!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="jobshop.css"/>
+        <script src="jobshop.js"></script>
+    </head>
+
+    <body>
+        <div class="textWidthDiv" id="textWidthDiv"></div>
+        <div class="import_div" id="import_div">
+            <label class="import_label" for="import_input">Import Plan</label>
+            <input class="import_input" id="import_input" type="file" accept=".json" onchange="handleImportInputClickEvent(event);"></input>
+        </div>
+
+        <div class="masker_div" id="masker_div"></div>
+        <div class="navigation_tab" id="navigation_tab">
+            <label class="navigation_label" id="gantt_chart" onclick="onClickGanttChartView();">Resource Gantt View</label>
+            <label class="navigation_label" id="demand_chart" onclick="onClickDemandPlanView();">Demand Plan View</label>
+        </div>
+        <div class="header_row" id="header_row">
+            <div class="dummy_div" id="0"></div>
+        </div>
+        <div class="content_area" id="content_area"></div>
+
+        <div class="scroll_div" id="scroll_div">
+            <label class="import_label" onclick="onClickPreviousPage();">&lt; Previous Page</label>
+            <label class="import_label" onclick="onClickPreviousShift();">Step -</label>
+            <label class="import_label" onclick="onClickNextShift();">Step +</label>
+            <label class="import_label" onclick="onClickNextPage();">Next Page &gt;</label>
+        </div>
+
+    </body>
+</html>

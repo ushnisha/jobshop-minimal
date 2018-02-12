@@ -63,7 +63,7 @@ public class CalendarShift {
      * Return the priority of the shift
      * @return priority of the shift
      */
-    public double getPriority() {
+    public int getPriority() {
         return this.priority;
     }
 

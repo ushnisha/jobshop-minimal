@@ -120,6 +120,14 @@ public class Demand {
     }
 
     /**
+     * Returns the date on which the demand is planned
+     * @return plan date of the demand
+     */
+    public LocalDateTime getPlanDate() {
+        return this.plandate;
+    }
+
+    /**
      * Returns the plan to which this demand belongs
      * @return Plan which this demand is a part of
      */

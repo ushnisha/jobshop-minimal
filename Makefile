@@ -48,6 +48,7 @@ clean: dirs
 	$(RM) $(ROOT)/$(LOGS)/*.log && \
 	$(RM) $(ROOT)/$(LOGS)/*.good && \
 	$(RM) $(ROOT)/$(LOGS)/*.bad && \
+	$(RM) $(ROOT)/$(LOGS)/*.json && \
 	$(RM) $(ROOT)/data/*.csv
 
 all: clean

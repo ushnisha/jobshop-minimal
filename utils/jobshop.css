@@ -1,0 +1,186 @@
+/**
+ **********************************************************************
+   Copyright (c) 2017-2018 Arun Kunchithapatham
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as published
+   by the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+   Contributors:
+   Arun Kunchithapatham - Initial Contribution
+ ***********************************************************************
+ *
+ */
+    
+.import_div {
+    position: fixed;
+    height: 50px;
+    z-index:100;
+}
+
+.scroll_div {
+    position: fixed;
+    bottom: 10px;
+    z-index:100;
+}
+
+.import_label {
+    background-color: #7F9CCB;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px ridge black;
+    font-size: 0.8rem;
+    height: 50px;
+    z-index:100;
+}
+
+.import_input
+{
+    visibility:hidden;
+}
+
+div.masker_div
+{
+  position:fixed;
+  top:0px;
+  left: 0;
+  right: 0;
+  height:150px;
+  background-color: #FFFFFF;
+  z-index:50;
+}
+  
+div.navigation_tab
+{
+    position:fixed;
+    top: 50px;
+    left: 0;
+    height:50px;
+    white-space:nowrap;
+    background-color:#FFFFFF;
+    z-index:100;
+}
+
+.navigation_label {
+    position:relative;
+    background-color:#D3D3D3;
+    padding: 5px 10px;
+    border-radius: 5px;
+    top:25px;
+    border-top: 1px ridge black;
+    border-left: 1px ridge black;
+    border-right: 1px ridge black;
+    font-size: 0.8rem;
+    height: 50px;
+    z-index:100;
+}
+
+div.header_row
+{
+    position:fixed;
+    top: 100px;
+    left: 0;
+    height:50px;
+    white-space:nowrap;
+    background-color:#F4ECD8;
+    z-index:100;
+}
+
+div.dummy_div
+{
+    float:left;
+    width:200px;
+    height:50px;
+    background-color:#FFFFFF;
+    line-height:50px;
+    text-align:center;
+    vertical-align:middle;
+    z-index:100;
+    border-right: 1px ridge black;
+}
+
+div.shift_div
+{
+    float:left;
+    width:100px;
+    height:50px;
+    background-color:#FFFFFF;
+    line-height:50px;
+    text-align:center;
+    vertical-align:middle;
+    z-index:100;
+    border-right: 1px ridge black;
+}
+
+div.content_area
+{
+    position:relative;
+    top:150px;
+    left: 0;
+    right:0;
+    white-space:nowrap;
+    z-index = 1;
+    border-top: 1px ridge black;
+}
+
+div.wrk_row
+{
+    position:relative;
+    height:100px;
+    line-height:100px;
+    text-align:center;
+    vertical-align:middle;
+    white-space:nowrap;
+    z-index = 1;
+    border-bottom: 1px ridge black;
+    background-color:#f6fbfc;
+}
+
+
+div.wrk_div
+{
+    width:200px;
+    height:100px;
+    line-height:100px;
+    text-align:center;
+    vertical-align:middle;
+    z-index:1;
+}
+
+div.taskplan
+{
+    position:absolute;
+    top:25px;
+    height:50px;
+    line-height:50px;
+    text-align:center;
+    vertical-align:middle;
+    font-size:0.8em;
+    word-wrap:break-word;
+    background-color:#F4ECD8;
+    border:1px inset black;
+}
+
+div.textWidthDiv
+{
+    position:absolute;
+    float:left;
+    height:50px;
+    line-height:50px;
+    text-align:center;
+    vertical-align:middle;
+    font-size:0.8em;
+    height:auto;
+    width:auto;
+    visibility:hidden;
+    whitespace:no-wrap;
+}

@@ -60,7 +60,6 @@ public class JobShop {
 
     public static enum DEBUG_LEVELS { NONE, MINIMAL, STANDARD, DETAILED, MAXIMAL };
     public static DEBUG_LEVELS DEBUG = DEBUG_LEVELS.MINIMAL;
-    public static enum DATA_QUALITY { GOOD, BAD };
 
     public static Path logDir;
     public static Path logFile;
@@ -117,9 +116,12 @@ public class JobShop {
         solver.generatePlan(p);
 
         if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
-			jshop.print();
-		}
-
+            jshop.print();
+            if (jshop.options.containsKey("export_json") &&
+                Boolean.parseBoolean(jshop.options.get("export_json"))) {
+                jshop.exportJSON();
+            }
+        }
     }
 
     /**
@@ -172,35 +174,17 @@ public class JobShop {
                 System.out.println(message);
             }
 
-            try {
-                Files.write(JobShop.logFile,
-                            Arrays.asList(LocalDateTime.now().toString() + " : " +
-                                          message),
-                            charset,
-                            StandardOpenOption.WRITE,
-                            StandardOpenOption.CREATE,
-                            StandardOpenOption.APPEND);
-            }
-            catch (IOException e) {
-                System.err.println("Unable to write to log file: " + e);
-            }
+            JobShop.LOGDATA(JobShop.logFile,
+                            LocalDateTime.now().toString() + " : " + message);
         }
     }
 
     /**
-     * Utility function that logs input data to .good and .bad files
-     * @param type DATA_QUALITY Whether this data record is good or bad
+     * Generic Utility function that logs input data to a given Path
+     * @param currentPath Path of the file to which we write the log data
      * @param datarec String The data record to log to appropriate file
      */
-    public static void LOGDATA(DATA_QUALITY type, String datarec) {
-
-        Path currentPath;
-        if (type == DATA_QUALITY.GOOD) {
-            currentPath = goodFile;
-        }
-        else {
-            currentPath = badFile;
-        }
+    public static void LOGDATA(Path currentPath, String datarec) {
 
         try {
             Files.write(currentPath,
@@ -574,18 +558,18 @@ public class JobShop {
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
                     if (p.charAt(0) == '#') {
-                        if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                        if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
                     String[] parts = p.split(",", -1);
 
                     if (plans.containsKey(parts[0])) {
                         JobShop.LOG("Plan already exists: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
 
                     Plan plan = new Plan(parts[0], LocalDateTime.parse(parts[1], dfs), LocalDateTime.parse(parts[2], dfs));
                     plans.put(parts[0], plan);
@@ -639,7 +623,7 @@ public class JobShop {
 
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
                     if (p.charAt(0) == '#') {
                         continue;
                     }
@@ -697,18 +681,18 @@ public class JobShop {
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
                     if (p.charAt(0) == '#') {
-                        if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                        if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
                     String[] parts = p.split(",", -1);
 
                     if (skus.containsKey(parts[0])) {
                         JobShop.LOG("SKU already exists: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
 
                     SKU s = new SKU(parts[0],parts[1]);
                     skus.put(parts[0], s);
@@ -761,18 +745,18 @@ public class JobShop {
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
                     if (p.charAt(0) == '#') {
-                        if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                        if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
                     String[] parts = p.split(",", -1);
 
                     if (calendars.containsKey(parts[0])) {
                         JobShop.LOG("Calendar already exists: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
 
                     Calendar cal = new Calendar(parts[0], parts[1]);
                     calendars.put(parts[0], cal);
@@ -824,7 +808,7 @@ public class JobShop {
 
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
                     if (p.charAt(0) == '#') {
                         continue;
                     }
@@ -896,7 +880,7 @@ public class JobShop {
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
                     if (p.charAt(0) == '#') {
-                        if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                        if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
                     String[] parts = p.split(",", -1);
@@ -905,11 +889,11 @@ public class JobShop {
 
                     if (workcenters.containsKey(parts[0])) {
                         JobShop.LOG("Workcenter already exists: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
 
                     Workcenter ws = new Workcenter(parts[0], cal, Integer.parseInt(parts[2]), Integer.parseInt(parts[3]));
                     workcenters.put(parts[0], ws);
@@ -966,7 +950,7 @@ public class JobShop {
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
                     if (p.charAt(0) == '#') {
-                        if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                        if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
                     String[] parts = p.split(",", -1);
@@ -976,11 +960,11 @@ public class JobShop {
 
                     if (tasks.containsKey(taskNum)) {
                         JobShop.LOG("Task already exists: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
 
                     Task task = new Task(parts[0], sku,
                                          Long.parseLong(parts[2]),
@@ -1056,7 +1040,7 @@ public class JobShop {
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
                     if (p.charAt(0) == '#') {
-                        if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                        if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
                     String[] parts = p.split(",", -1);
@@ -1069,11 +1053,11 @@ public class JobShop {
 
                     if (demands.containsKey(parts[1])) {
                         JobShop.LOG("Demand already exists: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
 
                     Demand dmd = new Demand(parts[1], parts[2], sku,
                                             LocalDateTime.parse(parts[4], dfs),
@@ -1141,7 +1125,7 @@ public class JobShop {
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
                     if (p.charAt(0) == '#') {
-                        if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                        if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
                     String[] parts = p.split(",", -1);
@@ -1150,27 +1134,27 @@ public class JobShop {
 
                     if (succ == null) {
                         JobShop.LOG("Successor task does not exists: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
                     if (pred == null) {
                         JobShop.LOG("Predecessor task does not exists: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
                     if(succ.getPredecessor() != null) {
                         JobShop.LOG("Successor task already has a predecessor: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
                     if(pred.getSuccessor() != null) {
                         JobShop.LOG("Predecessor task already has a successor: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
 
                     succ.setPredecessor(pred);
                     pred.setSuccessor(succ);
@@ -1229,7 +1213,7 @@ public class JobShop {
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
                     if (p.charAt(0) == '#') {
-                        if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                        if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
                     String[] parts = p.split(",", -1);
@@ -1239,17 +1223,17 @@ public class JobShop {
 
                     if(t == null) {
                         JobShop.LOG("Task does not exist in task workcenter association: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
                     if(w== null) {
                         JobShop.LOG("Workcenter does not exist in task workcenter association: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
 
                     t.addWorkcenter(w, priority);
                 }
@@ -1307,7 +1291,7 @@ public class JobShop {
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
                     if (p.charAt(0) == '#') {
-                        if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                        if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
                     String[] parts = p.split(",", -1);
@@ -1324,23 +1308,23 @@ public class JobShop {
 
                     if(t == null) {
                         JobShop.LOG("Task does not exist in released workorder: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
                     if(parts[8].length() > 0 && w == null) {
                         JobShop.LOG("Workcenter does not exist in released workorder: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
                     if(parts[9].length() > 0 && d == null) {
                         JobShop.LOG("Demand does not exist in released workorder: " + p);
-                        if (cleandata) LOGDATA(DATA_QUALITY.BAD, p);
+                        if (cleandata) LOGDATA(badFile, p);
                         continue;
                     }
 
-                    if (cleandata) LOGDATA(DATA_QUALITY.GOOD, p);
+                    if (cleandata) LOGDATA(goodFile, p);
 
                     ReleasedWorkOrder rwo = new ReleasedWorkOrder(woid,
                                                  lotid, t, pln, w,
@@ -1537,6 +1521,152 @@ public class JobShop {
                 JobShop.LOG(e.getMessage());
             }
         }
+    }
+
+    /**
+     * A utility function to print out data about the different objects
+     * in the JobShop model in a JSON format.  This can be used to
+     * visualize the plan results in a web browser (poor man's UI)
+     */
+    public void exportJSON() {
+
+
+        Path exportFile = Paths.get(this.options.get("logdir") +
+                                    "/jobshop_export_" +
+                                    LocalDateTime.now().toString() +
+                                    ".json");
+        JobShop.LOGDATA(exportFile, "{");
+        boolean firstRecord = true;
+        String outStr = "";
+
+        // Export Demands
+        List<Demand> sdmds = this.demands.values()
+                                .stream()
+                                .sorted(Comparator.comparing(Demand::getPriority))
+                                .collect(Collectors.toList());
+
+        outStr = "\"demands\" : [\n";
+        firstRecord = true;
+        for (Demand dmd : sdmds) {
+            if (firstRecord) {
+                firstRecord = false;
+            }
+            else {
+                outStr += ",\n";
+            }
+            outStr += "\t{ \"demandid\" : \"" + dmd.getID() +
+                      "\", \"customerid\" : \"" + dmd.getCustomerID() +
+                      "\", \"skuid\" : \"" + dmd.getSKU() +
+                      "\", \"priority\" : \"" + dmd.getPriority() +
+                      "\", \"quantity\" : \"" + dmd.getDueQuantity() +
+                      "\", \"duedate\" : \"" + sqliteDFS.format(dmd.getDueDate()) +
+                      "\", \"plandate\" : \"" + sqliteDFS.format(dmd.getPlanDate()) +
+                      "\"}";
+        }
+        outStr += "],\n";
+        JobShop.LOGDATA(exportFile, outStr);
+
+        // Export Workcenters
+        List<String> sworks = this.workcenters.keySet()
+                                .stream()
+                                .sorted()
+                                .collect(Collectors.toList());
+
+        outStr = "\"workcenters\" : [\n";
+        firstRecord = true;
+        for (String w : sworks) {
+            if (firstRecord) {
+                firstRecord = false;
+            }
+            else {
+                outStr += ",\n";
+            }
+            outStr += "\t\"" + w + "\"";
+        }
+        outStr += "],\n";
+        JobShop.LOGDATA(exportFile, outStr);
+
+        // Export CalendarShifts
+        // We simply pick the first calendar and export its shifts
+        // since we don't care about shift availability for UI reporting
+        List<String> scals = this.calendars.keySet()
+                               .stream()
+                               .sorted()
+                               .collect(Collectors.toList());
+
+        outStr = "\"shifts\" : [\n";
+        firstRecord = true;
+        for (CalendarShift cshift : this.calendars.get(scals.get(0)).getShifts()) {
+            if (firstRecord) {
+                firstRecord = false;
+            }
+            else {
+                outStr += ",\n";
+            }
+            outStr += "\t{ \"shiftno\" : \"" + cshift.getPriority() +
+                      "\", \"shiftstart\" : \"" + sqliteDFS.format(cshift.getStart()) +
+                      "\", \"shiftend\" : \"" + sqliteDFS.format(cshift.getEnd()) +
+                      "\", \"value\" : \"" + cshift.getValue() +
+                      "\"}";
+        }
+        outStr += "],\n";
+        JobShop.LOGDATA(exportFile, outStr);
+
+        // Export TaskPlans
+        List<String> stasks = this.tasks.keySet()
+                                .stream()
+                                .sorted()
+                                .collect(Collectors.toList());
+
+        outStr = "\"taskplans\" : [\n";
+        firstRecord = true;
+
+        for (String t : stasks) {
+            Task task = this.tasks.get(t);
+            List<TaskPlan> tps = task.getTaskPlans().stream()
+                                    .sorted(Comparator.comparing(TaskPlan::getStart))
+                                    .collect(Collectors.toList());
+            for (TaskPlan tp : tps) {
+                if (firstRecord) {
+                    firstRecord = false;
+                }
+                else {
+                    outStr += ",\n";
+                }
+                outStr += "\t{ \"skuid\" : \"" + task.getSKU() +
+                          "\", \"tasknum\" : \"" + task.getTaskID() +
+                          "\", \"quantity\" : \"" + tp.getQuantity() +
+                          "\", \"startdate\" : \"" + sqliteDFS.format(tp.getStart()) +
+                          "\", \"enddate\" : \"" + sqliteDFS.format(tp.getEnd()) +
+                          "\", \"demandid\" : \"" + tp.getDemandID() +
+                          "\", \"planid\" : \"" + tp.getPlan().getID();
+
+                if (tp.getWorkcenter() != null) {
+                    outStr += "\", \"workcenterid\" : \"" + tp.getWorkcenter().getName();
+                }
+                else {
+                    outStr += "\", \"workcenterid\" : \"null";
+                }
+
+                if (tp.getReleasedWorkOrder() != null) {
+                    outStr += "\", \"rwo\" : \"" + tp.getReleasedWorkOrder().getID() +
+                              "\", \"rwo_quantity\" : \"" + tp.getReleasedWorkOrder().getQuantity() +
+                              "\", \"lotid\" : \"" + tp.getReleasedWorkOrder().getLotID(tp);
+                }
+                else {
+                    outStr += "\", \"rwo\" : \"null" +
+                              "\", \"rwo_quantity\" : \"null" +
+                              "\", \"lotid\" : \"null";
+                }
+                outStr += "\"}";
+            }
+        }
+        outStr += "]\n";
+        JobShop.LOGDATA(exportFile, outStr);
+
+        // End of file
+        JobShop.LOGDATA(exportFile, "}");
+
     }
 
     /**
