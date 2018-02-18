@@ -110,7 +110,7 @@ public class JobShop {
 			pls = jshop.getPlans();
 		}
 		
-        for (Plan p : jshop.getPlans()) {
+        for (Plan p : pls) {
             SimpleJobShopSolver solver = new SimpleJobShopSolver(jshop);
             solver.runStaticAnalysis(p);
             solver.generatePlan(p);
