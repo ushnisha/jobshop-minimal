@@ -100,26 +100,27 @@ public class JobShop {
     public static void main(String args[]) {
 		
         JobShop jshop = new JobShop(args);
-        Plan p = null;
+        List<Plan> pls = new ArrayList<Plan>();
 
         if (jshop.options.containsKey("default_plan")) {
             assert(jshop.plans.containsKey(jshop.options.get("default_plan")));
-			p = jshop.plans.get(jshop.options.get("default_plan"));
+			pls.add(jshop.plans.get(jshop.options.get("default_plan")));
 		}
 		else {
-			String firstKey = (new ArrayList<String>(jshop.plans.keySet())).get(0);
-			p = jshop.plans.get(firstKey);
+			pls = jshop.getPlans();
 		}
 		
-        SimpleJobShopSolver solver = new SimpleJobShopSolver(jshop);
-        solver.runStaticAnalysis(p);
-        solver.generatePlan(p);
+        for (Plan p : jshop.getPlans()) {
+            SimpleJobShopSolver solver = new SimpleJobShopSolver(jshop);
+            solver.runStaticAnalysis(p);
+            solver.generatePlan(p);
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
-            jshop.print();
-            if (jshop.options.containsKey("export_json") &&
-                Boolean.parseBoolean(jshop.options.get("export_json"))) {
-                jshop.exportJSON();
+            if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
+                jshop.print(p);
+                if (jshop.options.containsKey("export_json") &&
+                    Boolean.parseBoolean(jshop.options.get("export_json"))) {
+                    jshop.exportJSON(p);
+                }
             }
         }
     }
@@ -409,6 +410,34 @@ public class JobShop {
         // (2) If key options are not specified, set default values
         //
 
+        // Create the logFile location based on input option (or default)
+        //
+        if (this.options.containsKey("logdir")) {
+            JobShop.logDir = Paths.get(this.options.get("logdir"));
+            if (!Files.isDirectory(JobShop.logDir)) {
+                System.err.println("Terminating Program! Invalid logdir Path: " + JobShop.logDir.toString());
+                System.exit(404);
+            }
+            JobShop.logFile = Paths.get(this.options.get("logdir") + "/jobshop.log");
+        }
+        else {
+            JobShop.logDir = Paths.get("").toAbsolutePath();
+            String cwd = logDir.toString();
+            JobShop.logFile = Paths.get(cwd + "/jobshop.log");
+        }
+
+        try {
+            Files.write(JobShop.logFile,
+                        Arrays.asList(LocalDateTime.now().toString() + " : " +
+                                      "Starting JobShop Minimal Solver"),
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING);
+        }
+        catch (IOException e) {
+            System.err.println("Unable to write to log file: " + e);
+        }
+
         // Check to make sure input_mode is specified
         if (this.options.containsKey("input_mode")) {
             String mode = this.options.get("input_mode");
@@ -465,34 +494,6 @@ public class JobShop {
                 System.err.println("Exiting!  Cannot clean data without explicit specification of logdir option");
                 System.exit(403);
             }
-        }
-
-        // Create the logFile location based on input option (or default)
-        //
-        if (this.options.containsKey("logdir")) {
-            JobShop.logDir = Paths.get(this.options.get("logdir"));
-            if (!Files.isDirectory(JobShop.logDir)) {
-                System.err.println("Terminating Program! Invalid logdir Path: " + JobShop.logDir.toString());
-                System.exit(404);
-            }
-            JobShop.logFile = Paths.get(this.options.get("logdir") + "/jobshop.log");
-        }
-        else {
-            JobShop.logDir = Paths.get("").toAbsolutePath();
-            String cwd = logDir.toString();
-            JobShop.logFile = Paths.get(cwd + "/jobshop.log");
-        }
-
-        try {
-            Files.write(JobShop.logFile,
-                        Arrays.asList(LocalDateTime.now().toString() + " : " +
-                                      "Starting JobShop Minimal Solver"),
-                        StandardOpenOption.WRITE,
-                        StandardOpenOption.CREATE,
-                        StandardOpenOption.TRUNCATE_EXISTING);
-        }
-        catch (IOException e) {
-            System.err.println("Unable to write to log file: " + e);
         }
 
         // Setup the user specified debug level for logging information
@@ -1045,13 +1046,15 @@ public class JobShop {
                     }
                     String[] parts = p.split(",", -1);
 
+                    String dmdKey = parts[0] + "-" + parts[1];
+
                     Plan plan = plans.get(parts[0]);
                     assert(plan != null);
 
                     SKU sku = skus.get(parts[3]);
                     assert(sku != null);
 
-                    if (demands.containsKey(parts[1])) {
+                    if (demands.containsKey(dmdKey)) {
                         JobShop.LOG("Demand already exists: " + p);
                         if (cleandata) LOGDATA(badFile, p);
                         continue;
@@ -1063,7 +1066,7 @@ public class JobShop {
                                             LocalDateTime.parse(parts[4], dfs),
                                             Long.parseLong(parts[5]),
                                             Long.parseLong(parts[6]), plan);
-                    demands.put(parts[1], dmd);
+                    demands.put(dmdKey, dmd);
                 }
             } catch (IOException e) {
                 JobShop.LOG(e.getMessage());
@@ -1087,9 +1090,11 @@ public class JobShop {
                     SKU sku = skus.get(skuid);
                     assert(sku != null);
 
+                    String dmdKey = planid + "-" + demid;
+
                     Demand dmd = new Demand(demid, custid, sku, due.toLocalDateTime(),
                                             dueqty, pri, plan);
-                    demands.put(demid, dmd);
+                    demands.put(dmdKey, dmd);
                 }
             }
             catch (SQLException e) {
@@ -1296,12 +1301,14 @@ public class JobShop {
                     }
                     String[] parts = p.split(",", -1);
 
+                    String dmdKey = parts[0] + "-" + parts[9];
+
                     Plan pln = plans.get(parts[0]);
                     String woid = parts[1];
                     Integer lotid = Integer.valueOf(parts[2]);
                     Task t = tasks.get(parts[3] + "-" + parts[4]);
                     Workcenter w = workcenters.get(parts[8]);
-                    Demand d = demands.get(parts[9]);
+                    Demand d = demands.get(dmdKey);
                     long quantity = Long.parseLong(parts[7]);
                     LocalDateTime st = LocalDateTime.parse(parts[5], dfs);
                     LocalDateTime en = LocalDateTime.parse(parts[6], dfs);
@@ -1353,10 +1360,12 @@ public class JobShop {
                     long qty = rs.getLong("quantity");
                     String dmdid = rs.getString("demandid");
 
+                    String dmdKey = planid + "-" + dmdid;
+
                     Plan pln = plans.get(planid);
                     Task t = tasks.get(skuid + "-" + taskid);
                     Workcenter w = workcenters.get(wrkid);
-                    Demand d = demands.get(dmdid);
+                    Demand d = demands.get(dmdKey);
 
                     assert(t != null);
                     assert(wrkid.length() > 0 || w != null);
@@ -1394,26 +1403,35 @@ public class JobShop {
      * A utility function to print out data about the different objects
      * in the JobShop model.  This can be used to generate output
      * files that are compared to expect files for regression testing
+     * @param p Plan for which we are printing output
      */
-    public void print() {
+    public void print(Plan p) {
+        List<Plan> plns = new ArrayList<Plan>();
+        plns.add(p);
+        print(plns);
+    }
+
+    /**
+     * A utility function to print out data about the different objects
+     * in the JobShop model.  This can be used to generate output
+     * files that are compared to expect files for regression testing
+     * @param plns A List of Plans for which we are printing output
+     */
+    public void print(List<Plan> plns) {
 
         String mode = this.options.get("input_mode");
 
         if (mode.equals("FLATFILE")) {
-            JobShop.LOG("\nPlans:", true, DEBUG_LEVELS.MINIMAL);
-            List<String> splans = this.plans.keySet()
-                                    .stream()
-                                    .sorted()
-                                    .collect(Collectors.toList());
 
-            for (String p : splans) {
-                Plan plan = this.plans.get(p);
-                JobShop.LOG(plan.toString(), true, DEBUG_LEVELS.MINIMAL);
+            JobShop.LOG("\nPlans:", true, DEBUG_LEVELS.MINIMAL);
+            for (Plan p : plns) {
+                JobShop.LOG(p.toString(), true, DEBUG_LEVELS.MINIMAL);
             }
 
             JobShop.LOG("\nDemands:", true, DEBUG_LEVELS.MINIMAL);
             List<Demand> sdmds = this.demands.values()
                                     .stream()
+                                    .filter(dmd -> plns.contains(dmd.getPlan()))
                                     .sorted(Comparator.comparing(Demand::getPriority))
                                     .collect(Collectors.toList());
             for (Demand dmd : sdmds) {
@@ -1428,6 +1446,7 @@ public class JobShop {
             for (String t : stasks) {
                 Task task = this.tasks.get(t);
                 List<TaskPlan> tps = task.getTaskPlans().stream()
+                                        .filter(tp -> plns.contains(tp.getPlan()))
                                         .sorted(Comparator.comparing(TaskPlan::getStart))
                                         .collect(Collectors.toList());
                 for (TaskPlan tp : tps) {
@@ -1444,6 +1463,7 @@ public class JobShop {
                 Workcenter wrk = this.workcenters.get(w);
                 JobShop.LOG(wrk.toString(), true, DEBUG_LEVELS.MINIMAL);
                 List<TaskPlan> tps = wrk.getTaskPlans().stream()
+                                        .filter(tp -> plns.contains(tp.getPlan()))
                                         .sorted(Comparator.comparing(TaskPlan::getStart))
                                         .collect(Collectors.toList());
                 for (TaskPlan tp : tps) {
@@ -1453,18 +1473,37 @@ public class JobShop {
         }
         else if (mode.equals("DATABASE")) {
 
-            String delStmt = "delete from taskplan";
+            String deltpStmt = "delete from taskplan where planid = ?";
 
-            String stmt = "insert into taskplan " +
+            String deldpStmt = "delete from demandplan where planid = ?";
+
+            String tpStmt = "insert into taskplan " +
                           "(planid, demandid, skuid, taskid, startdate," +
                           " enddate, quantity, workcenterid, workorderid, lotid) values " +
                           "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            String dpStmt = "insert into demandplan " +
+                          "(planid, demandid, plandate, planquantity) values " +
+                          "(?, ?, ?, ?)";
             try {
-                // First delete all existing records in the TaskPlan table (from prior runs)
-                statement.executeUpdate(delStmt);
+                // First delete all existing records in the TaskPlan table (for current planid)
+                PreparedStatement deltppStmt = this.connection.prepareStatement(deltpStmt);
+                for (Plan p : plns) {
+                    deltppStmt.setString(1, p.getID());
+                    deltppStmt.addBatch();
+                }
+                deltppStmt.executeBatch();
+
+                // Then delete all existing records in the DemandPlan table (for current planid)
+                PreparedStatement deldppStmt = this.connection.prepareStatement(deldpStmt);
+                for (Plan p : plns) {
+                    deldppStmt.setString(1, p.getID());
+                    deldppStmt.addBatch();
+                }
+                deldppStmt.executeBatch();
 
                 // Now insert new records into the TaskPlan table (from current run)
-                PreparedStatement pStmt = this.connection.prepareStatement(stmt);
+                PreparedStatement tppStmt = this.connection.prepareStatement(tpStmt);
 
                 List<String> stasks = this.tasks.keySet()
                                         .stream()
@@ -1473,49 +1512,76 @@ public class JobShop {
                 for (String t : stasks) {
                     Task task = this.tasks.get(t);
                     List<TaskPlan> tps = task.getTaskPlans().stream()
+                                            .filter(tp -> plns.contains(tp.getPlan()))
                                             .sorted(Comparator.comparing(TaskPlan::getStart))
                                             .collect(Collectors.toList());
                     for (TaskPlan tp : tps) {
-                        pStmt.setString(1, tp.getPlan().getID());
+                        tppStmt.setString(1, tp.getPlan().getID());
                         if (tp.getDemand() != null) {
-                            pStmt.setString(2, tp.getDemand().getID());
+                            tppStmt.setString(2, tp.getDemand().getID());
                         }
                         else {
-                            pStmt.setNull(2, java.sql.Types.VARCHAR);
+                            tppStmt.setNull(2, java.sql.Types.VARCHAR);
                         }
-                        pStmt.setString(3, tp.getTask().getSKU().getName());
-                        pStmt.setString(4, tp.getTask().getTaskID());
-                        pStmt.setTimestamp(5, Timestamp.valueOf(tp.getStart()));
-                        pStmt.setTimestamp(6, Timestamp.valueOf(tp.getEnd()));
-                        pStmt.setInt(7, Long.valueOf(tp.getQuantity()).intValue());
+                        tppStmt.setString(3, tp.getTask().getSKU().getName());
+                        tppStmt.setString(4, tp.getTask().getTaskID());
+                        tppStmt.setTimestamp(5, Timestamp.valueOf(tp.getStart()));
+                        tppStmt.setTimestamp(6, Timestamp.valueOf(tp.getEnd()));
+                        tppStmt.setInt(7, Long.valueOf(tp.getQuantity()).intValue());
                         if (tp.getWorkcenter() != null) {
-                            pStmt.setString(8, tp.getWorkcenter().getName());
+                            tppStmt.setString(8, tp.getWorkcenter().getName());
                         }
                         else {
-                            pStmt.setNull(8, java.sql.Types.VARCHAR);
+                            tppStmt.setNull(8, java.sql.Types.VARCHAR);
                         }
 
                         if (tp.getReleasedWorkOrder() != null) {
-                            pStmt.setString(9, tp.getReleasedWorkOrder().getID());
-                            pStmt.setInt(10, tp.getReleasedWorkOrder().getLotID(tp).intValue());
+                            tppStmt.setString(9, tp.getReleasedWorkOrder().getID());
+                            tppStmt.setInt(10, tp.getReleasedWorkOrder().getLotID(tp).intValue());
                         }
                         else {
-                            pStmt.setNull(9, java.sql.Types.VARCHAR);
-                            pStmt.setNull(10, java.sql.Types.INTEGER);
+                            tppStmt.setNull(9, java.sql.Types.VARCHAR);
+                            tppStmt.setNull(10, java.sql.Types.INTEGER);
                         }
 
                         // Customization for SQLITE (which cannot handle TimeStamps)
                         if (this.options.get("db_connection_string").contains("sqlite")) {
-                            pStmt.setString(5, tp.getStart().format(sqliteDFS));
-                            pStmt.setString(6, tp.getEnd().format(sqliteDFS));
+                            tppStmt.setString(5, tp.getStart().format(sqliteDFS));
+                            tppStmt.setString(6, tp.getEnd().format(sqliteDFS));
                         }
 
-                        pStmt.addBatch();
+                        tppStmt.addBatch();
                     }
                 }
 
-                pStmt.executeBatch();
+                tppStmt.executeBatch();
                 JobShop.LOG("\nTaskplans written to database...", true, DEBUG_LEVELS.MINIMAL);
+
+                // Now insert new records into the DemandPlan table (from current run)
+                PreparedStatement dppStmt = this.connection.prepareStatement(dpStmt);
+
+                List<Demand> dmds = this.demands.values()
+                                        .stream()
+                                        .filter(dmd -> plns.contains(dmd.getPlan()))
+                                        .sorted(Comparator.comparing(Demand::getPriority))
+                                        .collect(Collectors.toList());
+                for (Demand dmd : dmds) {
+                    dppStmt.setString(1, dmd.getPlan().getID());
+                    dppStmt.setString(2, dmd.getID());
+                    dppStmt.setTimestamp(3, Timestamp.valueOf(dmd.getPlanDate()));
+                    dppStmt.setInt(4, Long.valueOf(dmd.getPlanQuantity()).intValue());
+
+                    // Customization for SQLITE (which cannot handle TimeStamps)
+                    if (this.options.get("db_connection_string").contains("sqlite")) {
+                        dppStmt.setString(3, dmd.getPlanDate().format(sqliteDFS));
+                    }
+
+                    dppStmt.addBatch();
+                }
+
+                dppStmt.executeBatch();
+                JobShop.LOG("\nDemandPlans written to database...", true, DEBUG_LEVELS.MINIMAL);
+
             }
             catch (SQLException e) {
                 JobShop.LOG(e.getMessage());
@@ -1528,20 +1594,56 @@ public class JobShop {
      * in the JobShop model in a JSON format.  This can be used to
      * visualize the plan results in a web browser (poor man's UI)
      */
-    public void exportJSON() {
+    public void exportJSON(Plan p) {
+        List<Plan> plns = new ArrayList<Plan>();
+        plns.add(p);
+        exportJSON(plns);
+    }
 
+
+    /**
+     * A utility function to print out data about the different objects
+     * in the JobShop model in a JSON format.  This can be used to
+     * visualize the plan results in a web browser (poor man's UI)
+     * @param plns A List of Plans for which we want to generate the output
+     */
+    public void exportJSON(List<Plan> plns) {
+
+        String plnStr = String.join("_", plns.stream()
+                                         .map(Plan::getID)
+                                         .collect(Collectors.toList()));
 
         Path exportFile = Paths.get(this.options.get("logdir") +
                                     "/jobshop_export_" +
+                                    plnStr + "_" +
                                     LocalDateTime.now().toString() +
                                     ".json");
         JobShop.LOGDATA(exportFile, "{");
         boolean firstRecord = true;
         String outStr = "";
 
+        // Export Plans
+        outStr = "\"plans\" : [\n";
+        firstRecord = true;
+        for (Plan p : plns) {
+            if (firstRecord) {
+                firstRecord = false;
+            }
+            else {
+                outStr += ",\n";
+            }
+            outStr += "\t{ \"planid\" : \"" + p.getID() +
+                      "\", \"startdate\" : \"" + sqliteDFS.format(p.getStart()) +
+                      "\", \"enddate\" : \"" + sqliteDFS.format(p.getEnd()) +
+                      "\"}";
+        }
+        outStr += "],\n";
+        JobShop.LOGDATA(exportFile, outStr);
+
         // Export Demands
         List<Demand> sdmds = this.demands.values()
                                 .stream()
+                                .filter(dmd -> plns.contains(dmd.getPlan()))
                                 .sorted(Comparator.comparing(Demand::getPriority))
                                 .collect(Collectors.toList());
 
@@ -1556,6 +1658,7 @@ public class JobShop {
             }
             outStr += "\t{ \"demandid\" : \"" + dmd.getID() +
                       "\", \"customerid\" : \"" + dmd.getCustomerID() +
+                      "\", \"planid\" : \"" + dmd.getPlan().getID() +
                       "\", \"skuid\" : \"" + dmd.getSKU() +
                       "\", \"priority\" : \"" + dmd.getPriority() +
                       "\", \"quantity\" : \"" + dmd.getDueQuantity() +
@@ -1624,6 +1727,7 @@ public class JobShop {
         for (String t : stasks) {
             Task task = this.tasks.get(t);
             List<TaskPlan> tps = task.getTaskPlans().stream()
+                                    .filter(tp -> plns.contains(tp.getPlan()))
                                     .sorted(Comparator.comparing(TaskPlan::getStart))
                                     .collect(Collectors.toList());
             for (TaskPlan tp : tps) {
@@ -1667,6 +1771,13 @@ public class JobShop {
         // End of file
         JobShop.LOGDATA(exportFile, "}");
 
+    }
+
+    /**
+     * Return a list of the plans in this JobShop model
+     */
+    public List<Plan> getPlans() {
+        return new ArrayList(this.plans.values());
     }
 
     /**

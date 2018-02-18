@@ -23,7 +23,7 @@
 usage()
 {
   echo "Usage: $0 <root directory of project> <path to dataset directory> <path to option file>"
-  echo "For example: $0 . db/jobshop.db load_options.txt"
+  echo "For example: $0 . tests/test0001 load_options.txt"
   exit 1
 }
 

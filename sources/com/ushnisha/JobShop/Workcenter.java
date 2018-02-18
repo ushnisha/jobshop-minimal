@@ -26,6 +26,8 @@
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.Comparator;
 
 import static com.ushnisha.JobShop.JobShop.DEBUG_LEVELS;
 import static com.ushnisha.JobShop.JobShop.LOG;
@@ -107,6 +109,18 @@ public class Workcenter {
     }
 
     /**
+     * Gets the list of TaskPlans that are planned on this workcenter
+     * @param p Plan for which we want the list of TaskPlans
+     * @return List<TaskPlan> that are planned on this resource for a
+     *         specified, input Plan
+     */
+    public List<TaskPlan> getTaskPlans(Plan p) {
+        return this.taskplans.stream()
+                   .filter(t -> t.getPlan().equals(p))
+                   .collect(Collectors.toList());
+    }
+
+    /**
      * Function that provides a DateRange within which we can schedule a TaskPlan
      * give the constraints within which the task plan must be planned
      * @param enddate a LocalDateTime on or before which the TaskPlan must end
@@ -140,7 +154,7 @@ public class Workcenter {
             // Now check if valid_DateRange is available and if not, look earlier
             boolean intersects = false;
             LocalDateTime new_enddate = LocalDateTime.MAX;
-            for (TaskPlan t : this.taskplans) {
+            for (TaskPlan t : this.getTaskPlans(p)) {
                 if (t.intersects(valid_DateRange) && t.getStart().isBefore(new_enddate)) {
                     intersects = true;
                     new_enddate = t.getStart();
@@ -195,7 +209,7 @@ public class Workcenter {
             // Now check if valid_DateRange is available and if not, look later
             boolean intersects = false;
             LocalDateTime new_startdate = LocalDateTime.MIN;
-            for (TaskPlan t : this.taskplans) {
+            for (TaskPlan t : this.getTaskPlans(p)) {
                 if (t.intersects(valid_DateRange) && t.getEnd().isAfter(new_startdate)) {
                     intersects = true;
                     new_startdate = t.getEnd();

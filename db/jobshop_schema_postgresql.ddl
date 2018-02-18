@@ -168,3 +168,14 @@ create table taskplan (
     foreign key(skuid, taskid) references task(skuid, taskid),
     foreign key(workcenterid) references workcenter(workcenterid)
 );
+
+drop table if exists demandplan cascade;
+create table demandplan (
+    planid varchar(100) not null,
+    demandid varchar(100) not null,
+    plandate timestamp not null,
+    planquantity integer not null,
+    date_created timestamp not null DEFAULT CURRENT_TIMESTAMP,
+    primary key(planid, demandid),
+    foreign key(planid, demandid) references demand(planid, demandid)
+);

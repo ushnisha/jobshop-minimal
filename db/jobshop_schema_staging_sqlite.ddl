@@ -155,3 +155,13 @@ create table _taskplan_staging (
     foreign key(skuid, taskid) references _task_staging(skuid, taskid),
     foreign key(workcenterid) references _workcenter_staging(workcenterid)
 );
+
+drop table if exists _demandplan_staging;
+create table _demandplan_staging (
+    planid varchar(100) not null,
+    demandid varchar(100) not null,
+    plandate datetime not null,
+    planquantity integer not null,
+    primary key(planid, demandid),
+    foreign key(planid, demandid) references _demand_staging(planid, demandid)
+);

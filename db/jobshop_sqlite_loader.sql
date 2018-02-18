@@ -33,6 +33,7 @@ delete from _taskworkcenterassn_staging;
 delete from _demand_staging;
 delete from _relworkorder_staging;
 delete from _taskplan_staging;
+delete from _demandplan_staging;
 
 .separator ,
 .import plan.csv _plan_staging
@@ -59,6 +60,7 @@ delete from taskworkcenterassn;
 delete from demand;
 delete from relworkorder;
 delete from taskplan;
+delete from demandplan;
 
 insert into plan (planid, planstart, planend)
 select planid, planstart, planend
@@ -124,6 +126,7 @@ drop table if exists _taskworkcenterassn_staging;
 drop table if exists _demand_staging;
 drop table if exists _relworkorder_staging;
 drop table if exists _taskplan_staging;
+drop table if exists _demandplan_staging;
 
 /* Update tables with timestamp fields to have JDBC driver compliant formats */
 update plan set planstart=strftime('%Y-%m-%d %H:%M:%f', planstart);

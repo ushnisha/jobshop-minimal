@@ -112,6 +112,14 @@ public class Demand {
     }
 
     /**
+     * Returns the planned quantity
+     * @return quantity for which we are planning the demand
+     */
+    public long getPlanQuantity() {
+        return this.planqty;
+    }
+
+    /**
      * Returns the date on which the demand is requested
      * @return due date of the demand
      */

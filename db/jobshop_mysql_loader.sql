@@ -21,6 +21,7 @@
  *
  */
 
+delete FROM demandplan;
 delete FROM taskplan;
 delete FROM relworkorder;
 delete FROM demand;
