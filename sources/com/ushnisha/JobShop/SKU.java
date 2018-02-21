@@ -26,11 +26,12 @@ package com.ushnisha.JobShop;
 /** A class that represents a SKU (stock keeping unit).  Demand is placed
  * for a specific SKU.
  */
-public class SKU {
+public class SKU implements Partitionable {
 
     private String name;
     private String description;
     private Task delivery_task;
+    private int partitionid;
 
     /**
      * Constructors and returns an SKU object given input parameters
@@ -41,7 +42,6 @@ public class SKU {
         this.name = n;
         this.description = d;
         this.delivery_task = null;
-
     }
 
     /**
@@ -61,11 +61,57 @@ public class SKU {
     }
 
     /**
+     * returns the partitionid of the SKU
+     * @return int value that represents the partitionid of the SKU.
+     */
+    public int getPartitionId() {
+         return this.partitionid;
+    }
+
+    /**
+     * updates the partitionid field of the SKU
+     * @param pid int value representing the partitionid of the SKU
+     */
+    public void setPartitionId(int pid) {
+        this.partitionid = pid;
+    }
+
+    /**
+     * propagates the partitionid field of the SKU to its
+     * delivery_task, if any
+     * @param pid integer representing the partitionid of the object
+     * @param check boolean value; if true, then propagate only if
+     *        partitionid is not equal to pid
+     */
+    public void propagatePartitionId(int pid, boolean check) {
+
+        if (check && this.partitionid == pid) {
+            return;
+        }
+
+        this.partitionid = pid;
+
+        if (this.delivery_task != null) {
+            this.delivery_task.propagatePartitionId(this.partitionid, true);
+        }
+    }
+
+    /**
      * Returns the name of this SKU
      * @return String that is the name of this SKU
      */
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * returns a string representation of the SKU
+     * for logging during partitioning
+     * @return String value that represents the SKU
+     */
+    public String partitionLogString() {
+        return "SKU : " + this.toString() + " belongs to partition " +
+               this.partitionid;
     }
 
     /**

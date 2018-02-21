@@ -34,7 +34,7 @@ import java.util.Collections;
 /**
  * A class representing a ReleasedWorkOrder.  This is a plan instance of a ReleasedWorkOrder
  */
-public class ReleasedWorkOrder {
+public class ReleasedWorkOrder implements Partitionable {
 
     private String workorderid;
     private Integer lotid;
@@ -46,6 +46,7 @@ public class ReleasedWorkOrder {
     private long quantity;
     private Demand demand;
     private TaskPlan taskplan;
+    private int partitionid;
     private List<TaskPlan> allocated_taskplans;
     private Map<TaskPlan, Integer> workorder_lots;
     
@@ -250,7 +251,59 @@ public class ReleasedWorkOrder {
          Integer maxLotID = Collections.max(this.workorder_lots.values());
          return maxLotID + 1;
      }
-     
+
+    /**
+     * returns the partitionid of the ReleasedWorkOrder
+     * @return int value that represents the partitionid of the ReleasedWorkOrder.
+     */
+    public int getPartitionId() {
+         return this.partitionid;
+    }
+
+    /**
+     * updates the partitionid field of the ReleasedWorkOrder
+     * @param pid int value representing the partitionid of the ReleasedWorkOrder
+     */
+    public void setPartitionId(int pid) {
+        this.partitionid = pid;
+    }
+
+    /**
+     * propagates the partitionid field of the ReleasedWorkOrder to related
+     * tasks, and workcenter/demand if any
+     * @param pid integer representing the partitionid of the object
+     * @param check boolean value; if true, then propagate only if
+     *        partitionid is not equal to pid
+     */
+    public void propagatePartitionId(int pid, boolean check) {
+
+        if (check && this.partitionid == pid) {
+            return;
+        }
+
+        this.partitionid = pid;
+
+        this.task.propagatePartitionId(this.partitionid, true);
+
+        if (this.workcenter != null) {
+        this.workcenter.propagatePartitionId(this.partitionid, true);
+        }
+
+        if (this.demand != null) {
+        this.demand.propagatePartitionId(this.partitionid, true);
+        }
+    }
+
+    /**
+     * returns a string representation of the ReleasedWorkOrder
+     * for logging during partitioning
+     * @return String value that represents the ReleasedWorkOrder
+     */
+    public String partitionLogString() {
+        return "ReleasedWorkOrder : " + this.toString() + " belongs to partition " +
+               this.partitionid;
+    }
+
     /**
      * A string representation of the ReleasedWorkOrder
      * @return String representing the ReleasedWorkOrder for output/log purposes

@@ -33,7 +33,7 @@ import static com.ushnisha.JobShop.JobShop.LOG;
 /**
  * A class the represents customer demand.
  */
-public class Demand {
+public class Demand implements Partitionable {
 
     private Plan plan;
     private String customer_id;
@@ -44,6 +44,7 @@ public class Demand {
     private long dueqty;
     private long planqty;
     private long priority;
+    private int partitionid;
     private List<TaskPlan> delivery_taskplans;
 
     /**
@@ -188,6 +189,54 @@ public class Demand {
                 plandate = t.getEnd();
             }
         }
+    }
+
+    /**
+     * returns the partitionid of the Demand
+     * @return int value that represents the partitionid of the Demand
+     */
+    public int getPartitionId() {
+         return this.partitionid;
+    }
+
+    /**
+     * sets the partitionid of the Demand
+     * @param pid int value representing the partitionid of the Demand
+     */
+    public void setPartitionId(int pid) {
+        this.partitionid = pid;
+    }
+
+    /**
+     * propagate partitionid to the SKU
+     * @param pid integer representing the partitionid of the object
+     * @param check boolean value; if true, then propagate only if
+     *        partitionid is not equal to pid
+     */
+    public void propagatePartitionId(int pid, boolean check) {
+
+        // do nothing - does not make sense to propagate for demands
+        // A demand can propagate its partitionid only to a SKU; but
+        // a SKU cannot update the demand when it changes
+        // We simply need to call the updatePartitionId function
+        // after completing partitioning.
+    }
+
+    /**
+     * update partitionid from the SKU
+     */
+    public void updatePartitionId() {
+        this.partitionid = this.getSKU().getPartitionId();
+    }
+
+    /**
+     * returns a string representation of the Demand
+     * for logging during partitioning
+     * @return String value that represents the Demand
+     */
+    public String partitionLogString() {
+        return "Demand : " + this.getID() + " belongs to partition " +
+               this.partitionid;
     }
 
     /**

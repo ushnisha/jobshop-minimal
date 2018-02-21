@@ -44,7 +44,7 @@ import static com.ushnisha.JobShop.JobShop.LOG;
  * into the finished SKU to meet the demand.  A Task may or may not load
  * a workcenter.
  */
-public class Task {
+public class Task implements Partitionable {
 
     private String taskNum;
     private String taskid;
@@ -56,6 +56,7 @@ public class Task {
     private long time_per;
     private long min_lot_size;
     private long max_lot_size;
+    private int partitionid;
     private Workcenter workcenter;
     private Map<Workcenter, Integer> workcenters;
     private List<TaskPlan> plans;
@@ -128,7 +129,7 @@ public class Task {
     /**
      * Returns the level of this task
      * @return int value representing the "level" of this task.
-     *         Upstream tasks have a higher level than downstream tasks
+     *         Downstream tasks have a higher level than upstream tasks
      *         This value can be computed through static analysis of the
      *         JobShop model and can be used by planning algorithms
      */
@@ -141,7 +142,59 @@ public class Task {
      * @param l int value representing the computed level of this task
      */
     public void setLevel(int l) {
+        JobShop.LOG("Setting level of Task: " + this.toString() + " : " + l,
+                    JobShop.DEBUG_LEVELS.DETAILED);
         this.level = l;
+    }
+
+    /**
+     * returns the partitionid of the Task
+     * @return int value that represents the partitionid of the Task.
+     */
+    public int getPartitionId() {
+         return this.partitionid;
+    }
+
+    /**
+     * updates the partitionid field of the Task
+     * @param pid int value representing the partitionid of the Task
+     */
+    public void setPartitionId(int pid) {
+        this.partitionid = pid;
+    }
+
+    /**
+     * propagates the partitionid field of the Task to related
+     * tasks, skus, and workcenters
+     * @param pid integer representing the partitionid of the object
+     * @param check boolean value; if true, then propagate only if
+     *        partitionid is not equal to pid
+     */
+    public void propagatePartitionId(int pid, boolean check) {
+
+        if (check && this.partitionid == pid) {
+            return;
+        }
+
+        this.partitionid = pid;
+
+        this.getSKU().propagatePartitionId(this.partitionid, true);
+
+        for (Workcenter w : this.getWorkcenters()) {
+            w.propagatePartitionId(this.partitionid, true);
+        }
+
+        if (this.pred != null) {
+            this.pred.propagatePartitionId(this.partitionid, true);
+        }
+
+        if (this.succ != null) {
+            this.succ.propagatePartitionId(this.partitionid, true);
+        }
+
+        for (ReleasedWorkOrder rwo : this.relworkorders) {
+            rwo.propagatePartitionId(this.partitionid, true);
+        }
     }
 
     /**
@@ -703,6 +756,17 @@ public class Task {
      }
 
      /**
+     * Set level to input parameter and propagate downstream
+     * @param lvl integer value representing the level of this Task
+     */
+    public void setLevelAndPropagate(int lvl) {
+        this.setLevel(lvl);
+        if (this.succ != null) {
+            this.succ.setLevelAndPropagate(lvl + 1);
+        }
+    }
+
+     /**
      * Associates ReleasedWorkOrder for this Task
      * @param wo ReleasedWorkOrder that for this Task
      */
@@ -751,6 +815,16 @@ public class Task {
     }
 
     /**
+     * returns a string representation of the Task
+     * for logging during partitioning
+     * @return String value that represents the Task
+     */
+    public String partitionLogString() {
+        return "Task : " + this.toString() + " belongs to partition " +
+               this.partitionid;
+    }
+
+    /**
      * Returns a string representation of the Task
      * @return String value representing this Task for use in output/log
      */
@@ -758,4 +832,3 @@ public class Task {
         return this.taskNum;
     }
 }
-

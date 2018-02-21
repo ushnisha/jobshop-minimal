@@ -37,13 +37,17 @@ import static com.ushnisha.JobShop.JobShop.LOG;
  * The above terms (workcenter, machine, resource) may be used interchangeably
  * at various points in this project
  */
-public class Workcenter {
+public class Workcenter implements Partitionable {
 
     private String name;
     private Calendar efficiency_calendar;
     private int max_setups_per_shift;
     private int criticality_index;
-    private int level;
+    private int min_level;
+    private int max_level;
+    private int internal_criticality;
+    private int partitionid;
+    private List<Task> tasks;
     private List<TaskPlan> taskplans;
 
     /**
@@ -55,43 +59,162 @@ public class Workcenter {
      *        Task that can be planned in any single shift on this workcenter
      * @param cindex an integer that represents the importance of this workcenter
      *        A planning algorithm can use this value to try and schedule the
-     *        tasks on this resource as a priority
+     *        tasks on this workcenter as a priority
      */
     public Workcenter (String n, Calendar cal, int nsetups, int cindex) {
         this.name = n;
         this.efficiency_calendar = cal;
         this.max_setups_per_shift = nsetups;
         this.criticality_index = cindex;
-        this.level = 0;
+        this.min_level = Integer.MAX_VALUE;
+        this.max_level = Integer.MIN_VALUE;
+        this.internal_criticality = 0;
+        this.tasks = new ArrayList<Task>();
         this.taskplans = new ArrayList<TaskPlan>();
     }
 
     /**
      * returns the Calendar used for planning on this workcenter
-     * @return Calendar that represents the working/efficiency calendar of this resource
+     * @return Calendar that represents the working/efficiency calendar
+     *         of this workcenter
      */
     public Calendar getCalendar() {
         return this.efficiency_calendar;
     }
-    
+
     /**
-     * returns the level of the workcenter
-     * @return int value that represents the level of the resource.  The larger
-     *         the level, the more upstream the workcenter and the more critical
-     *         it is to resolve overload problems on this resource first
+     * returns the min_level of the workcenter
+     * @return int value that represents the min_level of the workcenter.
+     *         The smaller the min_level, the more upstream the workcenter
+     *         and the more critical it is to resolve overload problems
+     *          on this workcenter first
      */
-     public int getLevel() {
-		 return this.level;
-	 }
-	 
-	 /**
-	  * updates the level field of the workcenter
-	  * @param l int value representing the level of the workcenter
-	  */
-	  public void setLevel(int l) {
-		  this.level = l;
-	  }
-	  
+    public int getMinLevel() {
+        return this.min_level;
+    }
+
+    /**
+     * updates the level field of the workcenter
+     * @param l int value representing the min_level of the workcenter
+     */
+    public void setMinLevel(int l) {
+        this.min_level = l;
+    }
+
+    /**
+     * returns the max_level of the workcenter
+     * @return int value that represents the max_level of the workcenter.
+     *         The smaller the max_level, the more upstream the workcenter
+     *         and the more critical it is to resolve overload problems
+     *          on this workcenter first
+     */
+    public int getMaxLevel() {
+         return this.max_level;
+    }
+
+    /**
+     * returns the partitionid of the workcenter
+     * @return int value that represents the partitionid of the workcenter.
+     */
+    public int getPartitionId() {
+         return this.partitionid;
+    }
+
+    /**
+     * updates the partitionid field of the workcenter
+     * @param pid int value representing the partitionid of the workcenter
+     */
+    public void setPartitionId(int pid) {
+        this.partitionid = pid;
+    }
+
+    /**
+     * propagates the partitionid field of the workcenter to related tasks
+     * @param pid integer representing the partitionid of the object
+     * @param check boolean value; if true, then propagate only if
+     *        partitionid is not equal to pid
+     */
+    public void propagatePartitionId(int pid, boolean check) {
+
+        if (check && this.partitionid == pid) {
+            return;
+        }
+        this.partitionid = pid;
+
+        for (Task t : this.tasks) {
+            t.propagatePartitionId(this.partitionid, true);
+        }
+    }
+
+    /**
+     * updates the level field of the workcenter
+     * @param l int value representing the max_level of the workcenter
+     */
+    public void setMaxLevel(int l) {
+        this.max_level = l;
+    }
+
+    /**
+     * updates the min and max level fields of the workcenter
+     */
+    public void updateMinMaxLevels() {
+
+        if (this.tasks.size() > 0) {
+          this.min_level = this.tasks.stream()
+                               .mapToInt(t -> t.getLevel())
+                               .min().getAsInt();
+
+          this.max_level = this.tasks.stream()
+                               .mapToInt(t -> t.getLevel())
+                               .max().getAsInt();
+        }
+
+        JobShop.LOG("Workcenter " + this.toString() +
+                  " has min/max levels " +
+                  this.min_level + " and " + this.max_level,
+                  JobShop.DEBUG_LEVELS.MAXIMAL);
+    }
+
+    /**
+     * calculates the internal_criticality field of the workcenter
+     * there are many ways to calculate this value; for now, we have
+     * a placeholder heuristic which is simply the number of tasks that
+     * can load this resource
+     */
+    public void calculateInternalCriticality() {
+        this.internal_criticality = this.tasks.size();
+        JobShop.LOG("Workcenter " + this.toString() +
+                    " has an internal criticality index of " +
+                    this.internal_criticality,
+                    JobShop.DEBUG_LEVELS.MAXIMAL);
+    }
+
+    /**
+     * returns the internal_criticality of the workcenter
+     * @return int value that represents the internal_criticality of the
+     *         workcenter. The larger this value, the more critical it
+     *         is to resolve overload problems on this workcenter
+     */
+    public int getInternalCriticality() {
+         return this.internal_criticality;
+    }
+
+    /**
+     * Assign a Task association for this Workcenter
+     * @param t Task that is associated with this workcenter and consumes time
+     */
+    public void addTask(Task t) {
+        this.tasks.add(t);
+    }
+
+    /**
+     * Gets the list of Tasks that are associated with this workcenter
+     * @return List<Task> that are associated with this workcenter
+     */
+    public List<Task> getTasks() {
+        return this.tasks;
+    }
+
     /**
      * Assign a TaskPlan to load this Workcenter
      * @param tp TaskPlan that is assigned to this workcenter and consumes time
@@ -102,7 +225,7 @@ public class Workcenter {
 
     /**
      * Gets the list of TaskPlans that are planned on this workcenter
-     * @return List<TaskPlan> that are planned on this resource
+     * @return List<TaskPlan> that are planned on this workcenter
      */
     public List<TaskPlan> getTaskPlans() {
         return this.taskplans;
@@ -111,7 +234,7 @@ public class Workcenter {
     /**
      * Gets the list of TaskPlans that are planned on this workcenter
      * @param p Plan for which we want the list of TaskPlans
-     * @return List<TaskPlan> that are planned on this resource for a
+     * @return List<TaskPlan> that are planned on this workcenter for a
      *         specified, input Plan
      */
     public List<TaskPlan> getTaskPlans(Plan p) {
@@ -125,8 +248,8 @@ public class Workcenter {
      * give the constraints within which the task plan must be planned
      * @param enddate a LocalDateTime on or before which the TaskPlan must end
      * @param baseLT a long value representing the lead time of the TaskPlan
-     *        without any resource efficiency or working/holiday consideration
-     * @param p Plan under which we are trying to Plan this resource.  The PlanParams of
+     *        without any workcenter efficiency or working/holiday consideration
+     * @param p Plan under which we are trying to Plan this workcenter.  The PlanParams of
      *        this plan will impose additional constraints on the planning algorithm
      */
     public DateRange queryEndBefore(LocalDateTime enddate, long baseLT, Plan p) {
@@ -142,7 +265,7 @@ public class Workcenter {
         valid_DateRange = CalendarUtils.calcEndBefore(efficiency_calendar, enddate, baseLT);
 
         // If capacity constrained, make sure that there is no interesection with other taskplans
-        // planned on this resource
+        // planned on this workcenter
         //
         if (capacity_constrained) {
             // If calendar is unable to find a valid date-range before end date; then we need to look forward
@@ -180,8 +303,8 @@ public class Workcenter {
      * give the constraints within which the task plan must be planned
      * @param startdate a LocalDateTime on or after which the TaskPlan must end
      * @param baseLT a long value representing the lead time of the TaskPlan
-     *        without any resource efficiency or working/holiday consideration
-     * @param p Plan under which we are trying to Plan this resource.  The PlanParams of
+     *        without any workcenter efficiency or working/holiday conpideration
+     * @param p Plan under which we are trying to Plan this workcenter.  The PlanParams of
      *        this plan will impose additional constraints on the planning algorithm
      */
     public DateRange queryStartAfter(LocalDateTime startdate, long baseLT, Plan p) {
@@ -197,7 +320,7 @@ public class Workcenter {
         valid_DateRange = CalendarUtils.calcStartAfter(efficiency_calendar, startdate, baseLT);
 
         // If capacity constrained, make sure that there is no interesection with other taskplans
-        // planned on this resource
+        // planned on this workcenter
         //
         if (capacity_constrained) {
             // If calendar is unable to find a valid date-range after start date; then we need to look backwards
@@ -236,6 +359,16 @@ public class Workcenter {
      */
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * returns a string representation of the Workcenter
+     * for logging during partitioning
+     * @return String value that represents the Workcenter
+     */
+    public String partitionLogString() {
+        return "Workcenter : " + this.toString() + " belongs to partition " +
+               this.partitionid;
     }
 
     /**

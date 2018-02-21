@@ -81,6 +81,7 @@ public class JobShop {
     private Map<Task,TaskPlan> taskplans;
     private Map<String,Workcenter> workcenters;
     private Map<String,ReleasedWorkOrder> relworkorders;
+    private Set<Partitionable> components;
 
     private Map<String,String> options;
     private String datadir;
@@ -112,7 +113,6 @@ public class JobShop {
 		
         for (Plan p : pls) {
             SimpleJobShopSolver solver = new SimpleJobShopSolver(jshop);
-            solver.runStaticAnalysis(p);
             solver.generatePlan(p);
 
             if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
@@ -215,6 +215,7 @@ public class JobShop {
         this.taskplans = new HashMap<Task,TaskPlan>();
         this.workcenters = new HashMap<String,Workcenter>();
         this.relworkorders = new HashMap<String,ReleasedWorkOrder>();
+        this.components = new HashSet<Partitionable>();
 
         this.options = new HashMap<String, String>();
         this.datadir = "";
@@ -224,6 +225,7 @@ public class JobShop {
         this.processOptions(args);
         this.loadData();
         this.performStaticDataValidation();
+        this.runStaticAnalysis();
     }
 
     /**
@@ -562,7 +564,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
 
                     if (plans.containsKey(parts[0])) {
                         JobShop.LOG("Plan already exists: " + p);
@@ -628,7 +630,7 @@ public class JobShop {
                     if (p.charAt(0) == '#') {
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
                     Plan plan = plans.get(parts[0]);
                     plan.setParam(parts[1], parts[2]);
                 }
@@ -685,7 +687,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
 
                     if (skus.containsKey(parts[0])) {
                         JobShop.LOG("SKU already exists: " + p);
@@ -697,6 +699,7 @@ public class JobShop {
 
                     SKU s = new SKU(parts[0],parts[1]);
                     skus.put(parts[0], s);
+                    components.add(s);
                 }
             } catch (IOException e) {
                 JobShop.LOG(e.getMessage());
@@ -711,6 +714,7 @@ public class JobShop {
 
                     SKU s = new SKU(skuid, desc);
                     skus.put(skuid, s);
+                    components.add(s);
                 }
             }
             catch (SQLException e) {
@@ -749,7 +753,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
 
                     if (calendars.containsKey(parts[0])) {
                         JobShop.LOG("Calendar already exists: " + p);
@@ -813,7 +817,7 @@ public class JobShop {
                     if (p.charAt(0) == '#') {
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
                     Calendar cal = calendars.get(parts[0]);
                     assert(cal != null);
 
@@ -884,7 +888,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
                     Calendar cal = calendars.get(parts[1]);
                     assert(cal != null);
 
@@ -898,6 +902,7 @@ public class JobShop {
 
                     Workcenter ws = new Workcenter(parts[0], cal, Integer.parseInt(parts[2]), Integer.parseInt(parts[3]));
                     workcenters.put(parts[0], ws);
+                    components.add(ws);
                 }
             } catch (IOException e) {
                 JobShop.LOG(e.getMessage());
@@ -916,6 +921,7 @@ public class JobShop {
                     assert(cal != null);
                     Workcenter ws = new Workcenter(wrkid, cal, max_setups_per_shift, criticality_idx);
                     workcenters.put(wrkid, ws);
+                    components.add(ws);
                 }
             }
             catch (SQLException e) {
@@ -954,7 +960,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
                     SKU sku = skus.get(parts[1]);
                     assert(sku != null);
                     String taskNum = parts[1] + "-" + parts[0];
@@ -973,6 +979,7 @@ public class JobShop {
                                          Long.parseLong(parts[4]),
                                          Long.parseLong(parts[5]));
                     tasks.put(taskNum, task);
+                    components.add(task);
 
                     if (parts[6].equals("Y") || parts[6].equals("y") || parts[6].equals("1") ||
                         parts[6].equals("T") || parts[6].equals("t")) {
@@ -1000,6 +1007,7 @@ public class JobShop {
                     String taskNum = skuid + "-" + taskid;
                     Task task = new Task(taskid, sku, setup_time, per_unit_time, min_ls, max_ls);
                     tasks.put(taskNum, task);
+                    components.add(task);
 
                     if (isdel.equals("Y") || isdel.equals("y") || isdel.equals("1") ||
                         isdel.equals("T") || isdel.equals("t")) {
@@ -1044,7 +1052,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
 
                     String dmdKey = parts[0] + "-" + parts[1];
 
@@ -1067,6 +1075,7 @@ public class JobShop {
                                             Long.parseLong(parts[5]),
                                             Long.parseLong(parts[6]), plan);
                     demands.put(dmdKey, dmd);
+                    components.add(dmd);
                 }
             } catch (IOException e) {
                 JobShop.LOG(e.getMessage());
@@ -1095,6 +1104,7 @@ public class JobShop {
                     Demand dmd = new Demand(demid, custid, sku, due.toLocalDateTime(),
                                             dueqty, pri, plan);
                     demands.put(dmdKey, dmd);
+                    components.add(dmd);
                 }
             }
             catch (SQLException e) {
@@ -1133,7 +1143,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
                     Task succ = tasks.get(parts[1] + "-" + parts[0]);
                     Task pred = tasks.get(parts[1] + "-" + parts[2]);
 
@@ -1221,7 +1231,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
                     Task t = tasks.get(parts[1] + "-" + parts[0]);
                     Workcenter w = workcenters.get(parts[2]);
                     Integer priority = new Integer(parts[3]);
@@ -1241,6 +1251,7 @@ public class JobShop {
                     if (cleandata) LOGDATA(goodFile, p);
 
                     t.addWorkcenter(w, priority);
+                    w.addTask(t);
                 }
             } catch (IOException e) {
                 JobShop.LOG(e.getMessage());
@@ -1261,6 +1272,7 @@ public class JobShop {
                     assert(w != null);
 
                     t.addWorkcenter(w, pri);
+                    w.addTask(t);
                 }
             }
             catch (SQLException e) {
@@ -1299,7 +1311,7 @@ public class JobShop {
                         if (cleandata) LOGDATA(goodFile, p);
                         continue;
                     }
-                    String[] parts = p.split(",", -1);
+                    String[] parts = getParts(p, ",");
 
                     String dmdKey = parts[0] + "-" + parts[9];
 
@@ -1340,6 +1352,7 @@ public class JobShop {
                     String wo_uniq_id = woid + "-" + lotid.toString();
                     relworkorders.put(wo_uniq_id, rwo);
                     t.addReleasedWorkOrder(rwo);
+                    components.add(rwo);
                 }
             } catch (IOException e) {
                 JobShop.LOG(e.getMessage());
@@ -1381,6 +1394,7 @@ public class JobShop {
                     String wo_uniq_id = woid + "-" + lotid.toString();
                     relworkorders.put(wo_uniq_id, rwo);
                     t.addReleasedWorkOrder(rwo);
+                    components.add(rwo);
                 }
             }
             catch (SQLException e) {
@@ -1777,8 +1791,109 @@ public class JobShop {
      * Return a list of the plans in this JobShop model
      */
     public List<Plan> getPlans() {
-        return new ArrayList(this.plans.values());
+        return new ArrayList<Plan>(this.plans.values());
     }
+
+    /**
+     * Returns a trimmed list of strings from an input record
+     * @param rec String representing an input record
+     * @param regex String representing regular expression used to split
+     *                     the input record
+     * @return String[] an array of string we split the input record into
+     *                  using the regex parameter
+     */
+    public static String[] getParts(String rec, String regex) {
+        String[] parts = rec.split(regex, -1);
+        for (int i=0; i < parts.length; i++) {
+            parts[i] = parts[i].trim();
+        }
+        return parts;
+    }
+
+    /**
+     * Perform static analysis of the JobShop model.  This will involve:
+     * - computing the "level" of all tasks
+     * - computing the "min" and "max" level of all workcenters
+     * - computing an internal "criticality" of all workcenters
+     * - TBD
+     */
+    private void runStaticAnalysis() {
+
+        // Compute the levels of different tasks
+        // Start from the tasks that have no predecessors and work forwards
+
+        List<Task> rootTasks = this.tasks.values().stream()
+                                   .filter(t -> t.getPredecessor() == null)
+                                   .collect(Collectors.toList());
+
+        for (Task t : rootTasks) {
+            t.setLevelAndPropagate(0);
+        }
+
+        // Compute the min and max levels of each workcenter
+        List<Workcenter> wrks = this.workcenters.values().stream()
+                                    .collect(Collectors.toList());
+
+        for (Workcenter w : wrks) {
+            w.updateMinMaxLevels();
+        }
+
+        // Compute workcenter criticality.
+        for (Workcenter w : wrks) {
+            w.calculateInternalCriticality();
+        }
+
+        // Calculate Partitions
+        partition();
+    }
+
+    /**
+     * Partition the JobShop and log the details
+     * At this time, we don't plan on doing anything with this result
+     * other than log and study it.  In future, for very large problems
+     * we can try to solve multiple partitions in parallel
+     */
+    private void partition() {
+
+        // First initialize all the components to belong to different
+        // partitions
+        int partitioncounter = 0;
+        for (Partitionable p : this.components) {
+            p.setPartitionId(partitioncounter);
+            partitioncounter++;
+        }
+
+        // Then start propagating the partitionid to all related components
+        for (Partitionable p : this.components) {
+            p.propagatePartitionId(p.getPartitionId(), false);
+        }
+
+        // Update demands based on SKU (propagation does not work on demands)
+        for (Demand d : this.demands.values()) {
+            d.updatePartitionId();
+        }
+
+        // Now collect the results of partitioning and renumber
+        Map<Integer, List<Partitionable>> partitions =
+            this.components.stream()
+                .collect(Collectors.groupingBy(p -> p.getPartitionId()));
+        int new_counter = 0;
+        for (Integer i : partitions.keySet()) {
+            new_counter++;
+            JobShop.LOG("Partition " + new_counter + " has " +
+                        partitions.get(i).size() + " components...",
+                        JobShop.DEBUG_LEVELS.DETAILED);
+
+            for (Partitionable p : partitions.get(i).stream()
+                                    .sorted(Comparator.comparing(x -> x.getClass().getName()))
+                                    .collect(Collectors.toList())) {
+                p.setPartitionId(new_counter);
+                JobShop.LOG("\t" + p.partitionLogString(),
+                            JobShop.DEBUG_LEVELS.DETAILED);
+            }
+        }
+    }
+
 
     /**
      * A utility function to print out usage message for this program
