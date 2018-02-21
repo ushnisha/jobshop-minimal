@@ -1,6 +1,9 @@
 #!/bin/sh
 
 ###############################################################################
+# JobShop Minimal - A minimal JobShop Scheduler                               #
+###############################################################################
+#                                                                             #
 # Copyright (c) 2017-2018 Arun Kunchithapatham                                #
 #                                                                             # 
 # This program is free software: you can redistribute it and/or modify        #
@@ -37,12 +40,23 @@ then
             echo "debug_level|MINIMAL" >> $TESTDIR/$tname/jobshop_options.opt
 
             java -jar $LIBDIR/JobShop.jar $TESTDIR/$tname/jobshop_options.opt > $TESTDIR/outputs/$tname.out 2>&1
-            diff $TESTDIR/outputs/$tname.out $TESTDIR/expects/$tname.expect > /dev/null
-            if [ $? -eq 0 ]
+            result=1
+            matchfile=`basename $tname.expect`
+            for exp in `find $TESTDIR/expects -name $tname.expect\* | sort`
+                do
+                    diff $TESTDIR/outputs/$tname.out $exp > /dev/null
+                    if [ $? -eq 0 ]
+                    then
+                        result=0
+                        matchfile=`basename $exp`
+                        break
+                    fi
+                done
+            if [ $result -eq 0 ]
             then
-                echo "Running test $tname... passed."
+                echo "Running test $tname... passed. (matched $matchfile)"
             else
-                echo "Running test $tname... failed."
+                echo "Running test $tname... FAILED."
             fi
         done
 else

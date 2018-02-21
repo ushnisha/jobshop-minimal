@@ -1,5 +1,7 @@
 /**
  **********************************************************************
+ * JobShop Minimal - A minimal JobShop Scheduler
+ **********************************************************************
    Copyright (c) 2017-2018 Arun Kunchithapatham
 
    This program is free software: you can redistribute it and/or modify

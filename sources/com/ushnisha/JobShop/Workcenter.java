@@ -1,5 +1,7 @@
 /**
  **********************************************************************
+ * JobShop Minimal - A minimal JobShop Scheduler
+ **********************************************************************
    Copyright (c) 2017-2018 Arun Kunchithapatham
 
    This program is free software: you can redistribute it and/or modify
@@ -172,7 +174,7 @@ public class Workcenter implements Partitionable {
         JobShop.LOG("Workcenter " + this.toString() +
                   " has min/max levels " +
                   this.min_level + " and " + this.max_level,
-                  JobShop.DEBUG_LEVELS.MAXIMAL);
+                  JobShop.DEBUG_LEVELS.MINIMAL);
     }
 
     /**
@@ -186,7 +188,7 @@ public class Workcenter implements Partitionable {
         JobShop.LOG("Workcenter " + this.toString() +
                     " has an internal criticality index of " +
                     this.internal_criticality,
-                    JobShop.DEBUG_LEVELS.MAXIMAL);
+                    JobShop.DEBUG_LEVELS.MINIMAL);
     }
 
     /**

@@ -1,5 +1,7 @@
 /**
  **********************************************************************
+ * JobShop Minimal - A minimal JobShop Scheduler
+ **********************************************************************
    Copyright (c) 2017-2018 Arun Kunchithapatham
 
    This program is free software: you can redistribute it and/or modify
@@ -143,7 +145,7 @@ public class Task implements Partitionable {
      */
     public void setLevel(int l) {
         JobShop.LOG("Setting level of Task: " + this.toString() + " : " + l,
-                    JobShop.DEBUG_LEVELS.DETAILED);
+                    JobShop.DEBUG_LEVELS.MINIMAL);
         this.level = l;
     }
 

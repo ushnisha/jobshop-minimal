@@ -1,5 +1,7 @@
 /**
  **********************************************************************
+ * JobShop Minimal - A minimal JobShop Scheduler
+ **********************************************************************
    Copyright (c) 2017-2018 Arun Kunchithapatham
 
    This program is free software: you can redistribute it and/or modify
@@ -1882,14 +1884,14 @@ public class JobShop {
             new_counter++;
             JobShop.LOG("Partition " + new_counter + " has " +
                         partitions.get(i).size() + " components...",
-                        JobShop.DEBUG_LEVELS.DETAILED);
+                        JobShop.DEBUG_LEVELS.MINIMAL);
 
             for (Partitionable p : partitions.get(i).stream()
                                     .sorted(Comparator.comparing(x -> x.getClass().getName()))
                                     .collect(Collectors.toList())) {
                 p.setPartitionId(new_counter);
                 JobShop.LOG("\t" + p.partitionLogString(),
-                            JobShop.DEBUG_LEVELS.DETAILED);
+                            JobShop.DEBUG_LEVELS.MINIMAL);
             }
         }
     }
