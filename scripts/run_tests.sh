@@ -34,12 +34,14 @@ then
         do
             tname=`basename $tid`
             echo "input_mode|FLATFILE" > $TESTDIR/$tname/jobshop_options.opt
+            echo "output_mode|TESTPLAN" >> $TESTDIR/$tname/jobshop_options.opt
             echo "datadir|$tid" >> $TESTDIR/$tname/jobshop_options.opt
             echo "logdir|$LIBDIR/../logs" >> $TESTDIR/$tname/jobshop_options.opt
             echo "cleandata|false" >> $TESTDIR/$tname/jobshop_options.opt
             echo "debug_level|MINIMAL" >> $TESTDIR/$tname/jobshop_options.opt
 
-            java -jar $LIBDIR/JobShop.jar $TESTDIR/$tname/jobshop_options.opt > $TESTDIR/outputs/$tname.out 2>&1
+            java -jar $LIBDIR/JobShop.jar $TESTDIR/$tname/jobshop_options.opt > /dev/null 2>&1
+            cp $TESTDIR/$tname/jobshop.testplan.out $TESTDIR/outputs/$tname.out
             result=1
             matchfile=`basename $tname.expect`
             for exp in `find $TESTDIR/expects -name $tname.expect\* | sort`
@@ -61,12 +63,14 @@ then
         done
 else
     echo "input_mode|FLATFILE" > $TESTDIR/$TESTNAME/jobshop_options.opt
+    echo "output_mode|TESTPLAN" >> $TESTDIR/$tname/jobshop_options.opt
     echo "datadir|$TESTDIR/$TESTNAME" >> $TESTDIR/$TESTNAME/jobshop_options.opt
     echo "logdir|$LIBDIR/../logs" >> $TESTDIR/$tname/jobshop_options.opt
     echo "cleandata|false" >> $TESTDIR/$tname/jobshop_options.opt
     echo "debug_level|MINIMAL" >> $TESTDIR/$tname/jobshop_options.opt
-    java -jar $LIBDIR/JobShop.jar $TESTDIR/$TESTNAME/jobshop_options.opt > $TESTDIR/outputs/$TESTNAME.out 2>&1
-    diff $TESTDIR/outputs/$TESTNAME.out $TESTDIR/expects/$TESTNAME.expect >/dev/null
+    java -jar $LIBDIR/JobShop.jar $TESTDIR/$TESTNAME/jobshop_options.opt > /dev/null 2>&1
+    cp $TESTDIR/$tname/jobshop.testplan.out $TESTDIR/outputs/$tname.out
+    diff $TESTDIR/outputs/$TESTNAME.out $TESTDIR/expects/$TESTNAME.expect > /dev/null
     if [ $? -eq 0 ]
     then
         echo "Running test $TESTNAME... passed."

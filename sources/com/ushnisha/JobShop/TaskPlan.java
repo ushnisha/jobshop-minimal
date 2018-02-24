@@ -164,6 +164,14 @@ public class TaskPlan {
     }
 
     /**
+     * Returns the string ID of Plan for which we are creating this TaskPlan
+     * @return String ID of the Plan for which we are creating this TaskPlan
+     */
+    public String getPlanID() {
+        return this.plan.getID();
+    }
+
+    /**
      * Returns a unique identifier of the demand for which we are
      * creating this TaskPlan
      * @return String representing the unique identifier of the demand
@@ -226,22 +234,37 @@ public class TaskPlan {
      */
     public boolean intersects(DateRange dr) {
 
-        if (this.end.isAfter(dr.getStart()) &&
-            (this.end.isEqual(dr.getEnd()) || this.end.isBefore(dr.getEnd()))) {
-            return true;
-        }
-
-        if ((this.start.isEqual(dr.getStart()) || this.start.isAfter(dr.getStart())) &&
-            this.start.isBefore(dr.getEnd())) {
-            return true;
-        }
-
-        if((this.start.isEqual(dr.getStart()) || this.start.isBefore(dr.getStart())) &&
-           (this.end.isEqual(dr.getEnd()) || this.end.isAfter(dr.getEnd()))) {
+        DateRange tpSpan = new DateRange(this.getStart(), this.getEnd());
+        if (tpSpan.intersectLength(dr) > 0) {
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * A string representation of the Task Plan for writing to csv output
+     * @return String value representing the TaskPlan for output purposes
+     */
+    public String taskplanString() {
+        String outStr = "";
+        outStr += this.plan.getID() + "," + this.task.getSKU().getName() +
+                   "," + this.task.getTaskID() + "," + this.start +
+                   "," + this.end + "," + this.quantity +
+                   "," + this.getDemandID() + ",";
+
+        if (this.workcenter != null) {
+            outStr += this.workcenter;
+        }
+
+        if (this.isReleased) {
+            outStr += "," + this.relworkorder.getID() +
+                      "," + this.relworkorder.getLotID(this);
+        }
+        else {
+            outStr += ",,";
+        }
+        return outStr;
     }
 
     /**
@@ -256,7 +279,8 @@ public class TaskPlan {
                         this.plan.getID() + "; Loads: " + this.workcenter;
 
         if (this.isReleased) {
-            outStr += "; RWO: " + this.relworkorder.getID() + "-" + this.relworkorder.getLotID(this);
+            outStr += "; RWO: " + this.relworkorder.getID() +
+                      "-" + this.relworkorder.getLotID(this);
         }
         return outStr;
     }

@@ -356,6 +356,59 @@ public class Workcenter implements Partitionable {
     }
 
     /**
+     * Get the utilization of the workcenter in a given data range
+     * for a given plan
+     * @param pln Plan for which we are calculating utilization
+     * @param dr DateRange within which we want to calculate utilization
+     * @return double representing the calculated utilization in the
+     *         input data range period (value between 0.0 and 1.0)
+     */
+    public Double calculateUtilization(Plan pln, DateRange dr) {
+
+        List<ReleasedWorkOrder> rwos = new ArrayList<ReleasedWorkOrder>();
+
+        long drLength = dr.getLength();
+        long tpCumlLength = 0;
+
+        for (TaskPlan tp : this.taskplans.stream()
+                               .filter(tp -> tp.getPlan() == pln)
+                               .collect(Collectors.toList())) {
+            ReleasedWorkOrder rwo = tp.getReleasedWorkOrder();
+            if (rwo != null) {
+                if (rwos.contains(rwo)) {
+                    continue;
+                }
+                else {
+                    rwos.add(rwo);
+                }
+            }
+
+            DateRange tpSpan = new DateRange(tp.getStart(), tp.getEnd());
+            tpCumlLength += tpSpan.intersectLength(dr);
+        }
+
+        return Double.valueOf(1.0 * tpCumlLength / drLength);
+    }
+
+    /**
+     * Get the string representing utilization of the workcenter for a
+     * given plan and data range, for output purposes
+     * @param pln Plan for which we are calculating utilization
+     * @param dr DateRange within which we want to calculate utilization
+     * @return String representing the calculated utilization in the
+     *         input data range period (value between 0.0 and 1.0) in
+     *         a form suitable for output to file
+     */
+    public String wrkUtilString(Plan pln, DateRange dr) {
+
+        Double util = Double.max(this.calculateUtilization(pln, dr), Double.valueOf(0.0));
+        String outStr = pln.getID() + "," + this.name + "," +
+                        dr.getStart() + "," + dr.getEnd() + "," +
+                        util.toString();
+        return outStr;
+    }
+
+    /**
      * A string representation of the workcenter
      * @return String which is the name of the workcenter
      */

@@ -67,6 +67,7 @@ public class JobShop {
     public static Path logFile;
     public static Path goodFile;
     public static Path badFile;
+    public static Path testplanoutFile = null;
 
     private static DateTimeFormatter sqliteDFS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -116,15 +117,15 @@ public class JobShop {
         for (Plan p : pls) {
             SimpleJobShopSolver solver = new SimpleJobShopSolver(jshop);
             solver.generatePlan(p);
-
-            if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
-                jshop.print(p);
-                if (jshop.options.containsKey("export_json") &&
-                    Boolean.parseBoolean(jshop.options.get("export_json"))) {
-                    jshop.exportJSON(p);
-                }
-            }
         }
+
+        jshop.print(pls);
+        if (jshop.options.containsKey("export_json") &&
+            Boolean.parseBoolean(jshop.options.get("export_json"))) {
+            jshop.exportJSON(pls);
+        }
+
+        JobShop.LOG("Done!\n", true);
     }
 
     /**
@@ -188,6 +189,25 @@ public class JobShop {
      * @param datarec String The data record to log to appropriate file
      */
     public static void LOGDATA(Path currentPath, String datarec) {
+        LOGDATA(currentPath, datarec, true);
+    }
+
+    /**
+     * Generic Utility function that logs input data to a given Path
+     * @param currentPath Path of the file to which we write the log data
+     * @param datarec String The data record to log to appropriate file
+     * @param append boolean value if we should append to the file or overwrite
+     */
+    public static void LOGDATA(Path currentPath, String datarec, boolean append) {
+
+        if (currentPath == null) {
+            return;
+        }
+
+        StandardOpenOption app = StandardOpenOption.TRUNCATE_EXISTING;
+        if (append) {
+            app = StandardOpenOption.APPEND;
+        }
 
         try {
             Files.write(currentPath,
@@ -195,7 +215,7 @@ public class JobShop {
                         charset,
                         StandardOpenOption.WRITE,
                         StandardOpenOption.CREATE,
-                        StandardOpenOption.APPEND);
+                        app);
         }
         catch (IOException e) {
             System.err.println("Unable to write data to file: " + currentPath.toString());
@@ -360,6 +380,7 @@ public class JobShop {
         if (num_chains > 0) {
             String errMsg = "Found cycles! Aborting - please check logfile";
             JobShop.LOG(errMsg, DEBUG_LEVELS.MINIMAL);
+            JobShop.LOGDATA(testplanoutFile, errMsg);
             System.err.println(errMsg);
             System.exit(500);
         }
@@ -484,6 +505,24 @@ public class JobShop {
             this.datadir = this.options.get("datadir");
         }
 
+        // Check for the output_mode option; default is PRODUCTION
+        // Minimal output written to the screen.  In TESTPLAN mode, more
+        // output is written to the screen to redirect to an output file.
+        if (this.options.containsKey("output_mode")) {
+            String mode = this.options.get("output_mode");
+            assert(mode.equals("PRODUCTION") || mode.equals("TESTPLAN"));
+        }
+        else {
+            this.options.put("output_mode", "PRODUCTION");
+        }
+
+        // if TESTPLAN mode of output, then initialize the testplanoutFile variable
+        if (this.options.get("output_mode").equals("TESTPLAN")) {
+            testplanoutFile = Paths.get(this.options.get("datadir") +
+                                    "/jobshop.testplan.out");
+        }
+
+
         // Check for option to clean data; if set to true, we will
         // write all "good" records to a .good file and all "bad" records
         // to a .bad file for each input file
@@ -513,7 +552,7 @@ public class JobShop {
         }
 
         JobShop.LOG("\nA Minimal JobShop Planner", true);
-        JobShop.LOG("Processing options file...", true, DEBUG_LEVELS.STANDARD);
+        JobShop.LOGDATA(testplanoutFile, "\nA Minimal JobShop Planner", false);
 
     }
 
@@ -542,8 +581,9 @@ public class JobShop {
      */
     private void readPlans() {
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
             JobShop.LOG("Reading plan data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading plan data...");
 		}
 
         String mode = this.options.get("input_mode");
@@ -611,6 +651,7 @@ public class JobShop {
 
         if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
             JobShop.LOG("Reading planparam data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading planparam data...");
 		}
         String mode = this.options.get("input_mode");
 
@@ -667,6 +708,7 @@ public class JobShop {
 
         if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
             JobShop.LOG("Reading sku data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading sku data...");
 		}
 
         String mode = this.options.get("input_mode");
@@ -731,8 +773,9 @@ public class JobShop {
      */
     private void readCalendars() {
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
             JobShop.LOG("Reading calendar data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading calendar data...");
 		}
 
         String mode = this.options.get("input_mode");
@@ -795,8 +838,9 @@ public class JobShop {
      */
     private void readCalendarShifts() {
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
             JobShop.LOG("Reading calendarshift data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading calendarshift data...");
 		}
 
         String mode = this.options.get("input_mode");
@@ -866,8 +910,9 @@ public class JobShop {
      */
     private void readWorkcenters() {
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
             JobShop.LOG("Reading workcenter data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading workcenter data...");
         }
 
         String mode = this.options.get("input_mode");
@@ -938,8 +983,9 @@ public class JobShop {
      */
     private void readTasks() {
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
             JobShop.LOG("Reading task data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading task data...");
 		}
 
         String mode = this.options.get("input_mode");
@@ -1030,8 +1076,9 @@ public class JobShop {
      */
     private void readDemands() {
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
             JobShop.LOG("Reading demand data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading demand data...");
 		}
 
         String mode = this.options.get("input_mode");
@@ -1121,8 +1168,9 @@ public class JobShop {
      */
     private void readTaskPrecedences() {
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
             JobShop.LOG("Reading task precedence data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading task precedence data...");
 		}
 
         String mode = this.options.get("input_mode");
@@ -1209,8 +1257,9 @@ public class JobShop {
      */
     private void readTaskWorkcenterAssociations() {
 
-        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) { 
+        if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
             JobShop.LOG("Reading task workcenter association data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading task workcenter association data...");
 		}
 
         String mode = this.options.get("input_mode");
@@ -1291,6 +1340,7 @@ public class JobShop {
 
         if (DEBUG.ordinal() >= DEBUG_LEVELS.MINIMAL.ordinal()) {
             JobShop.LOG("Reading released workorder data...", true);
+            JobShop.LOGDATA(testplanoutFile, "Reading released workorder data...");
 		}
 
         String mode = this.options.get("input_mode");
@@ -1435,59 +1485,95 @@ public class JobShop {
      */
     public void print(List<Plan> plns) {
 
-        String mode = this.options.get("input_mode");
+        String inmode = this.options.get("input_mode");
+        String outmode = this.options.get("output_mode");
 
-        if (mode.equals("FLATFILE")) {
+        // Generate the output flat files
+        Path taskplanout = Paths.get(this.options.get("logdir") +
+                                    "/jobshop.taskplan.out");
+        Path dmdplanout = Paths.get(this.options.get("logdir") +
+                                    "/jobshop.demandplan.out");
+        Path wrkutilout = Paths.get(this.options.get("logdir") +
+                                    "/jobshop.workcenterutil.out");
 
-            JobShop.LOG("\nPlans:", true, DEBUG_LEVELS.MINIMAL);
-            for (Plan p : plns) {
-                JobShop.LOG(p.toString(), true, DEBUG_LEVELS.MINIMAL);
-            }
+        List<Demand> sdmds = this.demands.values()
+                                .stream()
+                                .filter(d -> plns.contains(d.getPlan()))
+                                .sorted(Comparator.comparing(Demand::getPlanName)
+                                                  .thenComparing(Demand::getPriority))
+                                .collect(Collectors.toList());
 
-            JobShop.LOG("\nDemands:", true, DEBUG_LEVELS.MINIMAL);
-            List<Demand> sdmds = this.demands.values()
-                                    .stream()
-                                    .filter(dmd -> plns.contains(dmd.getPlan()))
-                                    .sorted(Comparator.comparing(Demand::getPriority))
+        List<Task> stasks = this.tasks.values()
+                                .stream()
+                                .sorted(Comparator.comparing(Task::getTaskNumber))
+                                .collect(Collectors.toList());
+
+        List<Workcenter> sworks = this.workcenters.values()
+                                .stream()
+                                .sorted(Comparator.comparing(Workcenter::getName))
+                                .collect(Collectors.toList());
+
+        JobShop.LOGDATA(testplanoutFile, "\nPlans:");
+        for (Plan p : plns) {
+            JobShop.LOGDATA(testplanoutFile, p.toString());
+        }
+
+        JobShop.LOGDATA(testplanoutFile, "\nDemands:");
+        String dmdHeaderStr = "#planid,skuid,demandid,priority,duequantity,duedate,planquantity,plandate";
+        JobShop.LOGDATA(dmdplanout, dmdHeaderStr, false);
+        for (Demand dmd : sdmds) {
+            String outStr = dmd.dmdplanString();
+            JobShop.LOGDATA(testplanoutFile, dmd.toString());
+            JobShop.LOGDATA(dmdplanout, outStr);
+        }
+
+        JobShop.LOGDATA(testplanoutFile, "\nTaskPlans:");
+        String tpHeaderStr = "#planid,skuid,taskid,startdate,enddate,quantity,demandid,workcenterid,relworkorderid,lotid";
+        JobShop.LOGDATA(taskplanout, tpHeaderStr, false);
+        for (Task task : stasks) {
+            List<TaskPlan> tps = task.getTaskPlans().stream()
+                                    .filter(tp -> plns.contains(tp.getPlan()))
+                                    .sorted(Comparator.comparing(TaskPlan::getPlanID)
+                                                      .thenComparing(TaskPlan::getStart))
                                     .collect(Collectors.toList());
-            for (Demand dmd : sdmds) {
-                JobShop.LOG(dmd.toString(), true, DEBUG_LEVELS.MINIMAL);
+            for (TaskPlan tp : tps) {
+                String outStr = tp.taskplanString();
+                JobShop.LOGDATA(testplanoutFile, tp.toString());
+                JobShop.LOGDATA(taskplanout, outStr);
             }
+        }
 
-            JobShop.LOG("\nTaskPlans:", true, DEBUG_LEVELS.MINIMAL);
-            List<String> stasks = this.tasks.keySet()
-                                    .stream()
-                                    .sorted()
+        JobShop.LOGDATA(testplanoutFile, "\nWorkcenterPlans:");
+        for (Workcenter wrk : sworks) {
+            List<TaskPlan> tps = wrk.getTaskPlans().stream()
+                                    .filter(tp -> plns.contains(tp.getPlan()))
+                                    .sorted(Comparator.comparing(TaskPlan::getPlanID)
+                                                      .thenComparing(TaskPlan::getStart))
                                     .collect(Collectors.toList());
-            for (String t : stasks) {
-                Task task = this.tasks.get(t);
-                List<TaskPlan> tps = task.getTaskPlans().stream()
-                                        .filter(tp -> plns.contains(tp.getPlan()))
-                                        .sorted(Comparator.comparing(TaskPlan::getStart))
-                                        .collect(Collectors.toList());
-                for (TaskPlan tp : tps) {
-                    JobShop.LOG(tp.toString(), true, DEBUG_LEVELS.MINIMAL);
-                }
+            JobShop.LOGDATA(testplanoutFile, wrk.getName());
+            for (TaskPlan tp : tps) {
+                JobShop.LOGDATA(testplanoutFile, " - " + tp.toString());
             }
+        }
 
-            JobShop.LOG("\nWorkcenterPlans:", true, DEBUG_LEVELS.MINIMAL);
-            List<String> sworks = this.workcenters.keySet()
-                                    .stream()
-                                    .sorted()
-                                    .collect(Collectors.toList());
-            for (String w : sworks) {
-                Workcenter wrk = this.workcenters.get(w);
-                JobShop.LOG(wrk.toString(), true, DEBUG_LEVELS.MINIMAL);
-                List<TaskPlan> tps = wrk.getTaskPlans().stream()
-                                        .filter(tp -> plns.contains(tp.getPlan()))
-                                        .sorted(Comparator.comparing(TaskPlan::getStart))
-                                        .collect(Collectors.toList());
-                for (TaskPlan tp : tps) {
-                    JobShop.LOG(" - " + tp, true, DEBUG_LEVELS.MINIMAL);
+        String wrkUtilHdrStr = "#planid,workcenterid,shiftid,shiftstart,shiftend,utilization";
+        JobShop.LOGDATA(wrkutilout, wrkUtilHdrStr, false);
+        for (Workcenter wrk : sworks) {
+            for (Plan pln : this.plans.values()) {
+                DateRange horizon = new DateRange(pln.getStart(), pln.getEnd());
+                for (CalendarShift cs : wrk.getCalendar().getShifts()) {
+                    DateRange dr = new DateRange(cs.getStart(), cs.getEnd());
+                    if (horizon.contains(cs.getStart()) && horizon.contains(cs.getEnd())) {
+                        String outStr = wrk.wrkUtilString(pln, dr);
+                        Double util = wrk.calculateUtilization(pln, dr);
+                        JobShop.LOGDATA(wrkutilout, outStr);
+                    }
                 }
             }
         }
-        else if (mode.equals("DATABASE")) {
+
+        // If input mode is DATABASE, we also write to database tables
+        if (inmode.equals("DATABASE")) {
 
             String deltpStmt = "delete from taskplan where planid = ?";
 
@@ -1521,14 +1607,10 @@ public class JobShop {
                 // Now insert new records into the TaskPlan table (from current run)
                 PreparedStatement tppStmt = this.connection.prepareStatement(tpStmt);
 
-                List<String> stasks = this.tasks.keySet()
-                                        .stream()
-                                        .sorted()
-                                        .collect(Collectors.toList());
-                for (String t : stasks) {
-                    Task task = this.tasks.get(t);
+                for (Task task : stasks) {
                     List<TaskPlan> tps = task.getTaskPlans().stream()
                                             .filter(tp -> plns.contains(tp.getPlan()))
+                                            .sorted(Comparator.comparing(TaskPlan::getPlanID))
                                             .sorted(Comparator.comparing(TaskPlan::getStart))
                                             .collect(Collectors.toList());
                     for (TaskPlan tp : tps) {
@@ -1576,12 +1658,7 @@ public class JobShop {
                 // Now insert new records into the DemandPlan table (from current run)
                 PreparedStatement dppStmt = this.connection.prepareStatement(dpStmt);
 
-                List<Demand> dmds = this.demands.values()
-                                        .stream()
-                                        .filter(dmd -> plns.contains(dmd.getPlan()))
-                                        .sorted(Comparator.comparing(Demand::getPriority))
-                                        .collect(Collectors.toList());
-                for (Demand dmd : dmds) {
+                for (Demand dmd : sdmds) {
                     dppStmt.setString(1, dmd.getPlan().getID());
                     dppStmt.setString(2, dmd.getID());
                     dppStmt.setTimestamp(3, Timestamp.valueOf(dmd.getPlanDate()));

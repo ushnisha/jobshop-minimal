@@ -147,6 +147,15 @@ public class Demand implements Partitionable {
     }
 
     /**
+     * Returns the name of the plan to which this demand belongs
+     * @return String name of the plan which this demand is a part of
+     */
+    public String getPlanName() {
+        return this.plan.getID();
+    }
+
+
+    /**
      * Returns a list of TaskPlan objects that satisfy this demand
      * @return List<TaskPlan> that are used to satisfy this demand
      */
@@ -239,6 +248,18 @@ public class Demand implements Partitionable {
     public String partitionLogString() {
         return "Demand : " + this.getID() + " belongs to partition " +
                this.partitionid;
+    }
+
+    /**
+     * Returns a string representation of the demand suitable for writing
+     * to an output csv file
+     * @return String that represents the demand (for output purposes)
+     */
+    public String dmdplanString() {
+        return this.plan.getID() + "," + this.sku + "," + this.id +
+               "," + this.priority + "," + this.dueqty +
+               "," + this.duedate + "," + this.planqty +
+               "," + this.plandate;
     }
 
     /**
