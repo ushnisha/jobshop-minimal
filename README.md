@@ -11,7 +11,9 @@ Minimal support functionality includes:
 * Task sequence required to meet demand for a SKU
 * Task setup time and per unit cycle times
 * Tasks can load alternate workcenters (with priority sequence)
+* Released Work Orders that represent current state of jobshop
 * Workcenters can model holidays and efficiency (to stretch tasks)
+* Barebones visualization of plan (demand view and workcenter gantt view)
 
 Other features are planned for the future but not listed at this time.
 More details will be added to this README and to the project Wiki soon.

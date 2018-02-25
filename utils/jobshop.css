@@ -131,7 +131,7 @@ div.content_area
     left: 0;
     right:0;
     white-space:nowrap;
-    z-index = 1;
+    z-index:1;
     border-top: 1px ridge black;
 }
 
@@ -143,7 +143,7 @@ div.wrk_row
     text-align:center;
     vertical-align:middle;
     white-space:nowrap;
-    z-index = 1;
+    z-index:1;
     border-bottom: 1px ridge black;
     background-color:#f6fbfc;
 }

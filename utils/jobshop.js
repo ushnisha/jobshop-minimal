@@ -30,6 +30,7 @@ var shifts = null;
 var workcenters = null;
 var tasplans = null;
 var demands = null;
+var demandmap = null;
 
 var shiftWidth = 100;
 var shiftHeight = 50;
@@ -116,6 +117,11 @@ function handleImportInputClickEvent(event) {
                 workcenters = input_data["workcenters"];
                 taskplans = input_data["taskplans"];
                 demands = input_data["demands"];
+                demandmap = {};
+                for (let i = 0; i < demands.length; i++) {
+                    let dmd = demands[i];
+                    demandmap[dmd["demandid"]] = i;
+                }
                 
                 // other initialization
                 textWidthDiv = document.getElementById("textWidthDiv");
@@ -294,7 +300,15 @@ function updateGanttChart(offset) {
             if (tp["rwo"] !== "null") {
                 tp_div.style.backgroundColor = "#d3d3d3";
             }
-            
+
+            // Update the color of the taskplan div based on demand it is pegged to
+            let dmd = demands[demandmap[tp["demandid"]]];
+            let duedate = new Date(dmd["duedate"]);
+            let plandate = new Date(dmd["plandate"]);
+            if (plandate > duedate && tp["rwo"] == "null") {
+                tp_div.style.backgroundColor = "#CC0000";
+            }
+
             wrk_row = document.getElementById(tp["workcenterid"]);
             wrk_row.appendChild(tp_div);
 
@@ -334,6 +348,15 @@ function createDemandChart(input_data) {
         dmd_div.title = JSON.stringify(dmd, null, '\t');
         dmd_row.appendChild(dmd_div);
 
+        // Background coloring depending on demand lateness
+        let duedate = new Date(dmd["duedate"]);
+        let plandate = new Date(dmd["plandate"]);
+        if (plandate > duedate) {
+            dmd_div.style.backgroundColor = "#CC0000";
+        }
+        else {
+            dmd_div.style.backgroundColor = "#BCED91";
+        }
     }
     
     updateDemandChart(0);
