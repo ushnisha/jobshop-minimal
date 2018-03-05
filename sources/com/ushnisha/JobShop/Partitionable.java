@@ -46,7 +46,7 @@ public interface Partitionable {
 
     /**
      * propagates the partitionid field of the Partitionalble object
-     * @param sid integer representing the partitionid of the object
+     * @param pid integer representing the partitionid of the object
      * @param check boolean value; if true, then propagate only if
      *        partitionid is not equal to pid
      */

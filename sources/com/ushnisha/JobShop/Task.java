@@ -64,6 +64,11 @@ public class Task implements Partitionable {
     private List<TaskPlan> plans;
     private List<ReleasedWorkOrder> relworkorders;
 
+    private Map<Demand, LocalDateTime> EPST;
+    private Map<Demand, LocalDateTime> EPET;
+    private Map<Demand, LocalDateTime> LPST;
+    private Map<Demand, LocalDateTime> LPET;
+
     /**
      * Constructor for the task
      * @param id String representing the id/step of this task
@@ -94,6 +99,11 @@ public class Task implements Partitionable {
         this.workcenters = new HashMap<Workcenter, Integer>();
         this.plans = new ArrayList<TaskPlan>();
         this.relworkorders = new ArrayList<ReleasedWorkOrder>();
+
+        this.EPST = new HashMap<Demand, LocalDateTime>();
+        this.EPET = new HashMap<Demand, LocalDateTime>();
+        this.LPST = new HashMap<Demand, LocalDateTime>();
+        this.LPET = new HashMap<Demand, LocalDateTime>();
     }
 
     /**
@@ -758,6 +768,148 @@ public class Task implements Partitionable {
      }
 
      /**
+     * Calculate EPST of a task
+     * @param dmd Demand for which we are calculating EPST
+     */
+    public void calculateEPST(Demand dmd) {
+
+        long baseLT = getBaseLT(dmd.getDueQuantity());
+
+        LocalDateTime epst = dmd.getPlan().getStart();
+        LocalDateTime epet = epst.plusMinutes(baseLT);
+
+        if (this.pred != null) {
+            if (this.pred.getEPET(dmd).isAfter(epst)) {
+                epst = this.pred.getEPET(dmd);
+                epet = epst.plusMinutes(baseLT);
+            }
+        }
+
+        this.EPST.put(dmd, epst);
+        this.EPET.put(dmd, epet);
+
+        if (this.workcenters.size() > 0) {
+            List<Workcenter> wrks = this.workcenters.entrySet().stream()
+                                    .sorted(Map.Entry.comparingByValue())
+                                    .map(Map.Entry::getKey)
+                                    .collect(Collectors.toList());
+
+            JobShop.LOG("Found: " + this.workcenters.size() + " workcenters...",
+                        JobShop.DEBUG_LEVELS.MAXIMAL);
+
+            DateRange minmax = new DateRange(dmd.getPlan().getEnd(), dmd.getPlan().getEnd());
+            for (Workcenter w : wrks) {
+                JobShop.LOG("Processing workcenter: " + w.getName(),
+                            JobShop.DEBUG_LEVELS.MAXIMAL);
+                Calendar cal = w.getCalendar();
+                DateRange dr = CalendarUtils.calcStartAfter(cal, epst, baseLT);
+                if (dr.getStart().isBefore(minmax.getStart())) {
+                    minmax = new DateRange(dr.getStart(), minmax.getEnd());
+                }
+                if (dr.getEnd().isBefore(minmax.getEnd())) {
+                    minmax = new DateRange(minmax.getStart(), dr.getEnd());
+                }
+            }
+
+            if (minmax.getStart().isAfter(epst)) {
+                epst = minmax.getStart();
+                this.EPST.put(dmd, epst);
+            }
+            if (minmax.getEnd().isAfter(epet)) {
+                epet = minmax.getEnd();
+                this.EPET.put(dmd, epet);
+            }
+        }
+
+        JobShop.LOG("Demand: " + dmd.getID() +
+                    "; Task: " + this.taskNum +
+                    " has EPST: " + this.EPST.get(dmd) +
+                    "; and EPET: " + this.EPET.get(dmd),
+                    JobShop.DEBUG_LEVELS.MINIMAL);
+    }
+
+     /**
+     * Calculate LPST of a task
+     * @param dmd Demand for which we are calculating LPST
+     */
+    public void calculateLPST(Demand dmd) {
+
+        long baseLT = getBaseLT(dmd.getDueQuantity());
+
+        LocalDateTime lpet = dmd.getDueDate();
+        LocalDateTime lpst = lpet.minusMinutes(baseLT);
+
+        if (this.succ != null) {
+            if (this.succ.getLPST(dmd).isBefore(lpet)) {
+                lpet = this.succ.getLPST(dmd);
+                lpst = lpet.minusMinutes(baseLT);
+            }
+        }
+
+        this.LPET.put(dmd, lpet);
+        this.LPST.put(dmd, lpst);
+
+        if (this.workcenters.size() > 0) {
+            List<Workcenter> wrks = this.workcenters.entrySet().stream()
+                                    .sorted(Map.Entry.comparingByValue())
+                                    .map(Map.Entry::getKey)
+                                    .collect(Collectors.toList());
+
+            JobShop.LOG("Found: " + this.workcenters.size() + " workcenters...",
+                        JobShop.DEBUG_LEVELS.MAXIMAL);
+
+            DateRange minmax = new DateRange(dmd.getPlan().getStart(), dmd.getPlan().getStart());
+            for (Workcenter w : wrks) {
+                JobShop.LOG("Processing workcenter: " + w.getName(),
+                            JobShop.DEBUG_LEVELS.MAXIMAL);
+                Calendar cal = w.getCalendar();
+                DateRange dr = CalendarUtils.calcEndBefore(cal, lpet, baseLT);
+                if (dr.getStart().isAfter(minmax.getStart())) {
+                    minmax = new DateRange(dr.getStart(), minmax.getEnd());
+                }
+                if (dr.getEnd().isAfter(minmax.getEnd())) {
+                    minmax = new DateRange(minmax.getStart(), dr.getEnd());
+                }
+            }
+
+            if (minmax.getStart().isAfter(lpst)) {
+                lpst = minmax.getStart();
+                this.LPST.put(dmd, lpst);
+            }
+            if (minmax.getEnd().isAfter(lpet)) {
+                lpet = minmax.getEnd();
+                this.LPET.put(dmd, lpet);
+            }
+        }
+
+        if (this.LPST.get(dmd).isBefore(this.EPST.get(dmd))) {
+            JobShop.LOG("WARNING! Demand: " + dmd.getID() +
+                        "; Task: " + this.taskNum +
+                        " has LPST " + this.LPST.get(dmd) +
+                        " < EPST " + this.EPST.get(dmd) +
+                        " - Resetting LPST == EPST.",
+                        JobShop.DEBUG_LEVELS.MINIMAL);
+            this.LPST.put(dmd, this.EPST.get(dmd));
+        }
+
+        if (this.LPET.get(dmd).isBefore(this.EPET.get(dmd))) {
+            JobShop.LOG("WARNING! Demand: " + dmd.getID() +
+                        "; Task: " + this.taskNum +
+                        " has LPET " + this.LPET.get(dmd) +
+                        " < EPET " + this.EPET.get(dmd) +
+                        " - Resetting LPET == EPET.",
+                        JobShop.DEBUG_LEVELS.MINIMAL);
+            this.LPET.put(dmd, this.EPET.get(dmd));
+        }
+
+        JobShop.LOG("Demand: " + dmd.getID() +
+                    "; Task: " + this.taskNum +
+                    " has LPST: " + this.LPST.get(dmd) +
+                    "; and LPET: " + this.LPET.get(dmd),
+                    JobShop.DEBUG_LEVELS.MINIMAL);
+    }
+
+     /**
      * Set level to input parameter and propagate downstream
      * @param lvl integer value representing the level of this Task
      */
@@ -814,6 +966,42 @@ public class Task implements Partitionable {
      */
     public long getTimePer() {
         return this.time_per;
+    }
+
+    /**
+     * Returns the EPST of this task for a given demand
+     * @param dmd Demand for which we are requesting EPST of this Task
+     * @return LocalDateTime representing EPST of task for the Demand dmd
+     */
+    public LocalDateTime getEPST(Demand dmd) {
+        return this.EPST.get(dmd);
+    }
+
+    /**
+     * Returns the EPET of this task for a given demand
+     * @param dmd Demand for which we are requesting EPET of this Task
+     * @return LocalDateTime representing EPET of task for the Demand dmd
+     */
+    public LocalDateTime getEPET(Demand dmd) {
+        return this.EPET.get(dmd);
+    }
+
+    /**
+     * Returns the LPST of this task for a given demand
+     * @param dmd Demand for which we are requesting LPST of this Task
+     * @return LocalDateTime representing LPST of task for the Demand dmd
+     */
+    public LocalDateTime getLPST(Demand dmd) {
+        return this.LPST.get(dmd);
+    }
+
+    /**
+     * Returns the LPET of this task for a given demand
+     * @param dmd Demand for which we are requesting LPET of this Task
+     * @return LocalDateTime representing LPET of task for the Demand dmd
+     */
+    public LocalDateTime getLPET(Demand dmd) {
+        return this.LPET.get(dmd);
     }
 
     /**

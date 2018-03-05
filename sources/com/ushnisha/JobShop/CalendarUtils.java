@@ -251,6 +251,16 @@ public class CalendarUtils {
         int avg = (min + max)/2;
         boolean found = false;
 
+        // Ensure dt is between the start of the first shift and end of the last shift
+        // Else return the corresponding bounding date
+        if (dt.isBefore(shifts.get(0).getStart())) {
+            return 0;
+        }
+        if (dt.isAfter(shifts.get(max-1).getEnd())) {
+            return max - 1;
+        }
+
+        // If dt is within the shifts, then perform binary search
         while (!found) {
             CalendarShift avgShift = shifts.get(avg);
 

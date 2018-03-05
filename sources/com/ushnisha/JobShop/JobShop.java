@@ -248,6 +248,7 @@ public class JobShop {
         this.loadData();
         this.performStaticDataValidation();
         this.runStaticAnalysis();
+        this.runDynamicAnalysis();
     }
 
     /**
@@ -1836,7 +1837,11 @@ public class JobShop {
                           "\", \"startdate\" : \"" + sqliteDFS.format(tp.getStart()) +
                           "\", \"enddate\" : \"" + sqliteDFS.format(tp.getEnd()) +
                           "\", \"demandid\" : \"" + tp.getDemandID() +
-                          "\", \"planid\" : \"" + tp.getPlan().getID();
+                          "\", \"demandpriority\" : \"" + tp.getDemand().getPriority() +
+                          "\", \"planid\" : \"" + tp.getPlan().getID() +
+                          "\", \"EPST\" : \"" + task.getEPST(tp.getDemand()) +
+                          "\", \"LPST\" : \"" + task.getLPST(tp.getDemand()) +
+                          "\", \"Level\" : \"" + task.getLevel();
 
                 if (tp.getWorkcenter() != null) {
                     outStr += "\", \"workcenterid\" : \"" + tp.getWorkcenter().getName();
@@ -1973,6 +1978,47 @@ public class JobShop {
         }
     }
 
+
+    /**
+     * Perform dynamic analysis of the JobShop model.  This will involve:
+     * - computing the "internal_criticality" of workcenters
+     * - computing EPST/LPST of tasks by plan (based on the demands)
+     * - TBD
+     */
+    private void runDynamicAnalysis() {
+
+        // Calculate the EPST and LPST of each task for each demand
+        // This assumes no capacity constraints (but takes holidays and
+        // efficiency calendars into account).
+
+        List<Demand> dmds = this.demands.values().stream()
+                                   .collect(Collectors.toList());
+        for (Demand d : dmds) {
+            List<Task> tsks_asc = this.tasks.values().stream()
+                                      .filter(t -> t.getSKU().equals(d.getSKU()))
+                                      .sorted(Comparator.comparing(Task::getLevel))
+                                      .collect(Collectors.toList());
+
+            List<Task> tsks_dsc = this.tasks.values().stream()
+                                      .filter(t -> t.getSKU() == d.getSKU())
+                                      .sorted(Comparator.comparing(Task::getLevel).reversed())
+                                      .collect(Collectors.toList());
+
+            // Calculate EPST starting from the most upstream task
+            for (Task t : tsks_asc) {
+                JobShop.LOG("Calculating EPST of task: " + t.getTaskNumber(),
+                            JobShop.DEBUG_LEVELS.MAXIMAL);
+                t.calculateEPST(d);
+            }
+
+            // Calculate LPST starting from the most downstream task
+            for (Task t : tsks_dsc) {
+                JobShop.LOG("Calculating LPST of task: " + t.getTaskNumber(),
+                            JobShop.DEBUG_LEVELS.MAXIMAL);
+                t.calculateLPST(d);
+            }
+        }
+    }
 
     /**
      * A utility function to print out usage message for this program
