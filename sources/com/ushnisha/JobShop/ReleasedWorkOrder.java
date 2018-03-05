@@ -36,7 +36,7 @@ import java.util.Collections;
 /**
  * A class representing a ReleasedWorkOrder.  This is a plan instance of a ReleasedWorkOrder
  */
-public class ReleasedWorkOrder implements Partitionable {
+class ReleasedWorkOrder implements Partitionable {
 
     private String workorderid;
     private Integer lotid;
@@ -63,7 +63,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * @param qty long value representing the quantity for which this ReleasedWorkOrder is created
      * @param dmd Demand for which we are creating this ReleasedWorkOrder
      */
-    public ReleasedWorkOrder(String woid, Integer lotid, Task t, Plan p,
+    ReleasedWorkOrder(String woid, Integer lotid, Task t, Plan p,
                              Workcenter w, LocalDateTime st,
                              LocalDateTime en, long qty, Demand dmd) {
         this.workorderid = woid;
@@ -99,7 +99,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * @param req Request that is made by the downstream Task or Demand
      * @return Promise that is the response to the input request, req
      */
-    public Promise request(Request req) {
+    Promise request(Request req) {
         
         Demand dmd = req.getDemand();
         long reqQty = req.getQuantity();
@@ -152,7 +152,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * A string representation of the ReleasedWorkOrder
      * @return String representing the workorderid for output/log purposes
      */
-    public String getID() {
+    String getID() {
         return this.workorderid;
     }
 
@@ -160,7 +160,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * Returns the start time for this ReleasedWorkOrder
      * @return LocalDateTime representing the starting time of the ReleasedWorkOrder
      */
-    public LocalDateTime getStart() {
+    LocalDateTime getStart() {
         return this.start;
     }
 
@@ -168,7 +168,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * Returns the end time for this ReleasedWorkOrder
      * @return LocalDateTime representing the ending time of the ReleasedWorkOrder
      */
-    public LocalDateTime getEnd() {
+    LocalDateTime getEnd() {
         return this.end;
     }
 
@@ -176,7 +176,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * Returns the quantity for this ReleasedWorkOrder
      * @return long value representing the quantity of the ReleasedWorkOrder
      */
-    public long getQuantity() {
+    long getQuantity() {
         return this.quantity;
     }
 
@@ -184,7 +184,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * Returns the Plan for which we are creating this ReleasedWorkOrder
      * @return Plan for which we are creating this ReleasedWorkOrder
      */
-    public Plan getPlan() {
+    Plan getPlan() {
         return this.plan;
     }
 
@@ -194,7 +194,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * @return String representing the unique identifier of the demand
      *         for which we are creating this ReleasedWorkOrder
      */
-    public String getDemandID() {
+    String getDemandID() {
         if (this.demand != null) {
             return this.demand.getID();
         }
@@ -207,7 +207,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * Returns the Task that this ReleasedWorkOrder is a planning instance of
      * @return Task representing the Task corresponding to this ReleasedWorkOrder
      */
-    public Task getTask() {
+    Task getTask() {
         return this.task;
     }
 
@@ -215,7 +215,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * Returns the Workcenter that this ReleasedWorkOrder is a planned on
      * @return Workcenter representing the Workcenter this ReleasedWorkOrder loads
      */
-    public Workcenter getWorkcenter() {
+    Workcenter getWorkcenter() {
         return this.workcenter;
     }
     
@@ -223,7 +223,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * Returns the Demand that this ReleasedWorkOrder is a planned for
      * @return Demand representing the Demand this ReleasedWorkOrder is planned for
      */
-    public Demand getDemand() {
+    Demand getDemand() {
         return this.demand;
     }
 
@@ -232,15 +232,16 @@ public class ReleasedWorkOrder implements Partitionable {
      * @return List<TaskPlan> representing the TaskPlans corresponding to
      *                        this ReleasedWorkOrder
      */
-    public List<TaskPlan> getTaskPlans() {
+    List<TaskPlan> getTaskPlans() {
         return this.allocated_taskplans;
     }
 
-    /* Returns the LotID of the TaskPlan associated with this ReleasedWorkOrder
+    /**
+     * Returns the LotID of the TaskPlan associated with this ReleasedWorkOrder
      * @param tp TaskPlan for which we want to find the LotID
      * @return Integer value representing the LotID of the input TaskPlan
      */
-    public Integer getLotID(TaskPlan tp) {
+    Integer getLotID(TaskPlan tp) {
         return this.workorder_lots.get(tp);
     }
 
@@ -249,7 +250,7 @@ public class ReleasedWorkOrder implements Partitionable {
      * lotid value of all taskplans associated with this ReleasedWorkOrder
      * @return Integer value representing next lotID to assign
      */
-     public Integer getNextLotID() {
+     Integer getNextLotID() {
          Integer maxLotID = Collections.max(this.workorder_lots.values());
          return maxLotID + 1;
      }

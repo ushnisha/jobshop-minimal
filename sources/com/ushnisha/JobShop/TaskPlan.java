@@ -32,7 +32,7 @@ import java.util.ArrayList;
 /**
  * A class representing a TaskPlan.  This is a plan instance of a Task
  */
-public class TaskPlan {
+class TaskPlan {
 
     private Task task;
     private Plan plan;
@@ -55,7 +55,7 @@ public class TaskPlan {
      * @param qty long value representing the quantity for which this TaskPlan is created
      * @param dmd Demand for which we are creating this TaskPlan
      */
-    public TaskPlan(Task t, Plan p, Workcenter w,
+    TaskPlan(Task t, Plan p, Workcenter w,
                     LocalDateTime st, LocalDateTime en,
                     long qty, Demand dmd) {
         this.task = t;
@@ -81,7 +81,7 @@ public class TaskPlan {
      * @param rwo ReleasedWorkOrder representing the unique identity of the Demand for which
      *            we are creating this TaskPlan
      */
-    public TaskPlan(Task t, Plan p, Workcenter w,
+    TaskPlan(Task t, Plan p, Workcenter w,
                     LocalDateTime st, LocalDateTime en,
                     long qty, ReleasedWorkOrder rwo) {
         this.task = t;
@@ -109,7 +109,7 @@ public class TaskPlan {
      *            which we are creating this TaskPlan
      * @param rwo ReleasedWorkOrder for which we are creating this TaskPlan
      */
-    public TaskPlan(Task t, Plan p, Workcenter w,
+    TaskPlan(Task t, Plan p, Workcenter w,
                     LocalDateTime st, LocalDateTime en,
                     long qty, Demand dmd, ReleasedWorkOrder rwo) {
         this.task = t;
@@ -127,7 +127,7 @@ public class TaskPlan {
      * Returns the start time for this TaskPlan
      * @return LocalDateTime representing the starting time of the TaskPlan
      */
-    public LocalDateTime getStart() {
+    LocalDateTime getStart() {
         return this.start;
     }
 
@@ -135,7 +135,7 @@ public class TaskPlan {
      * Returns the end time for this TaskPlan
      * @return LocalDateTime representing the ending time of the TaskPlan
      */
-    public LocalDateTime getEnd() {
+    LocalDateTime getEnd() {
         return this.end;
     }
 
@@ -143,7 +143,7 @@ public class TaskPlan {
      * Returns the quantity for this TaskPlan
      * @return long value representing the quantity of the TaskPlan
      */
-    public long getQuantity() {
+    long getQuantity() {
         return this.quantity;
     }
 
@@ -151,7 +151,7 @@ public class TaskPlan {
      * Updates the quantity for this TaskPlan
      * @param qty representing the new quantity of the TaskPlan
      */
-    public void setQuantity(long qty) {
+    void setQuantity(long qty) {
         this.quantity = qty;
     }
 
@@ -159,7 +159,7 @@ public class TaskPlan {
      * Returns the Plan for which we are creating this TaskPlan
      * @return Plan for which we are creating this TaskPlan
      */
-    public Plan getPlan() {
+    Plan getPlan() {
         return this.plan;
     }
 
@@ -167,7 +167,7 @@ public class TaskPlan {
      * Returns the string ID of Plan for which we are creating this TaskPlan
      * @return String ID of the Plan for which we are creating this TaskPlan
      */
-    public String getPlanID() {
+    String getPlanID() {
         return this.plan.getID();
     }
 
@@ -177,7 +177,7 @@ public class TaskPlan {
      * @return String representing the unique identifier of the demand
      *         for which we are creating this TaskPlan
      */
-    public String getDemandID() {
+    String getDemandID() {
         if (this.demand == null) {
             return "null";
         }
@@ -190,7 +190,7 @@ public class TaskPlan {
      * Get the demand of this TaskPlan
      * @return Demand with which to associate this TaskPlan
      */
-    public Demand getDemand() {
+    Demand getDemand() {
         return this.demand;
     }
 
@@ -198,7 +198,7 @@ public class TaskPlan {
      * Sets the demand of this TaskPlan
      * @param dmd Demand with which to associate this TaskPlan
      */
-    public void setDemand(Demand dmd) {
+    void setDemand(Demand dmd) {
         this.demand = dmd;
     }
 
@@ -206,7 +206,7 @@ public class TaskPlan {
      * Returns the Task that this TaskPlan is a planning instance of
      * @return Task representing the Task corresponding to this TaskPlan
      */
-    public Task getTask() {
+    Task getTask() {
         return this.task;
     }
 
@@ -214,7 +214,7 @@ public class TaskPlan {
      * Returns the Workcenter that this TaskPlan is a planned on
      * @return Workcenter representing the Workcenter this TaskPlan loads
      */
-    public Workcenter getWorkcenter() {
+    Workcenter getWorkcenter() {
         return this.workcenter;
     }
 
@@ -222,7 +222,7 @@ public class TaskPlan {
      * Returns the ReleasedWorkOrder that this TaskPlan is a planned for
      * @return ReleasedWorkOrder based on which this TaskPlan was created
      */
-    public ReleasedWorkOrder getReleasedWorkOrder() {
+    ReleasedWorkOrder getReleasedWorkOrder() {
         return this.relworkorder;
     }
 
@@ -232,7 +232,7 @@ public class TaskPlan {
      * @param dr DateRange with which we check to see if TaskPlan intersects
      * @return boolean value true if intersects; false if not
      */
-    public boolean intersects(DateRange dr) {
+    boolean intersects(DateRange dr) {
 
         DateRange tpSpan = new DateRange(this.getStart(), this.getEnd());
         if (tpSpan.intersectLength(dr) > 0) {
@@ -246,7 +246,7 @@ public class TaskPlan {
      * A string representation of the Task Plan for writing to csv output
      * @return String value representing the TaskPlan for output purposes
      */
-    public String taskplanString() {
+    String taskplanString() {
         String outStr = "";
         outStr += this.plan.getID() + "," + this.task.getSKU().getName() +
                    "," + this.task.getTaskID() + "," + this.start +

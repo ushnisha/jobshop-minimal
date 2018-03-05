@@ -28,7 +28,7 @@ package com.ushnisha.JobShop;
 /** A class that represents a SKU (stock keeping unit).  Demand is placed
  * for a specific SKU.
  */
-public class SKU implements Partitionable {
+class SKU implements Partitionable {
 
     private String name;
     private String description;
@@ -40,7 +40,7 @@ public class SKU implements Partitionable {
      * @param n String representing unique name of the SKU
      * @param d String a general/useful description of the SKU
      */
-    public SKU(String n, String d) {
+    SKU(String n, String d) {
         this.name = n;
         this.description = d;
         this.delivery_task = null;
@@ -50,7 +50,7 @@ public class SKU implements Partitionable {
      * Links the SKU to a Task that can "deliver" this SKU to a demand
      * @param t a Task that is used to deliver this SKU to a demand for this SKU
      */
-    public void setDeliveryTask(Task t) {
+    void setDeliveryTask(Task t) {
         this.delivery_task = t;
     }
 
@@ -58,7 +58,7 @@ public class SKU implements Partitionable {
      * Returns the Task that is planned to meet a demand for this SKU
      * @return Task that is used to deliver this SKU to a demand for this SKU
      */
-    public Task getDeliveryTask() {
+    Task getDeliveryTask() {
         return this.delivery_task;
     }
 
@@ -102,7 +102,7 @@ public class SKU implements Partitionable {
      * Returns the name of this SKU
      * @return String that is the name of this SKU
      */
-    public String getName() {
+    String getName() {
         return this.name;
     }
 

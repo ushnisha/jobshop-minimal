@@ -48,7 +48,7 @@ public class Plan {
      * @param st LocalDateTime representing start of planning horizon
      * @param en LocalDateTime representing end of the planning horizon
      */
-    public Plan(String id, LocalDateTime st, LocalDateTime en) {
+    Plan(String id, LocalDateTime st, LocalDateTime en) {
         this.id = id;
         this.start = st;
         this.end = en;
@@ -62,7 +62,7 @@ public class Plan {
      * @return String representing the value of the parameter representing the key
      *         assumes that the key is a valid planning parameter name
      */
-    public String getParam(String key) {
+    String getParam(String key) {
         return this.params.get(key);
     }
 
@@ -71,7 +71,7 @@ public class Plan {
      * @param key String representing the name of the planning parameter
      * @param value String representing the value of the planning parameter
      */
-    public void setParam(String key, String value) {
+    void setParam(String key, String value) {
         this.params.put(key, value);
     }
 
@@ -79,7 +79,7 @@ public class Plan {
      * Returns the planning horizon start
      * @return LocalDateTime representing the start of the planning horizon
      */
-    public LocalDateTime getStart() {
+    LocalDateTime getStart() {
         return this.start;
     }
 
@@ -87,7 +87,7 @@ public class Plan {
      * Returns the planning horizon end
      * @return LocalDateTime representing the end of the planning horizon
      */
-    public LocalDateTime getEnd() {
+    LocalDateTime getEnd() {
         return this.end;
     }
 
@@ -96,7 +96,7 @@ public class Plan {
      * @return String representing the unique identifier of this plan
      */
 
-    public String getID() {
+    String getID() {
         return this.id;
     }
 

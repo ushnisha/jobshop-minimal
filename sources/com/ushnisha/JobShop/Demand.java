@@ -35,7 +35,7 @@ import static com.ushnisha.JobShop.JobShop.LOG;
 /**
  * A class the represents customer demand.
  */
-public class Demand implements Partitionable {
+class Demand implements Partitionable {
 
     private Plan plan;
     private String customer_id;
@@ -59,7 +59,7 @@ public class Demand implements Partitionable {
      *          The lower this value, the higher the priority of the demand
      * @param pln Plan to which this demand belongs
      */
-    public Demand(String id, String cid, SKU s, LocalDateTime dd,
+    Demand(String id, String cid, SKU s, LocalDateTime dd,
                   long q, long p, Plan pln) {
         this.id = id;
         this.customer_id = cid;
@@ -78,7 +78,7 @@ public class Demand implements Partitionable {
      * Returns the ID of the demand
      * @return demand id that uniquely identifies this demand (given the plan)
      */
-    public String getID() {
+    String getID() {
         return this.id;
     }
 
@@ -86,7 +86,7 @@ public class Demand implements Partitionable {
      * Return customer ID of the demand
      * @return the customer id of the demand
      */
-    public String getCustomerID() {
+    String getCustomerID() {
         return this.customer_id;
     }
 
@@ -94,7 +94,7 @@ public class Demand implements Partitionable {
      * Returns the SKU for which the demand is placed
      * @return SKU for which the demand is placed
      */
-    public SKU getSKU() {
+    SKU getSKU() {
         return this.sku;
     }
 
@@ -102,7 +102,7 @@ public class Demand implements Partitionable {
      * Returns the demand priority
      * @return priority of the demand
      */
-    public long getPriority() {
+    long getPriority() {
         return this.priority;
     }
 
@@ -110,7 +110,7 @@ public class Demand implements Partitionable {
      * Returns the demand quantity
      * @return quantity for which we are placing the demand
      */
-    public long getDueQuantity() {
+    long getDueQuantity() {
         return this.dueqty;
     }
 
@@ -118,7 +118,7 @@ public class Demand implements Partitionable {
      * Returns the planned quantity
      * @return quantity for which we are planning the demand
      */
-    public long getPlanQuantity() {
+    long getPlanQuantity() {
         return this.planqty;
     }
 
@@ -126,7 +126,7 @@ public class Demand implements Partitionable {
      * Returns the date on which the demand is requested
      * @return due date of the demand
      */
-    public LocalDateTime getDueDate() {
+    LocalDateTime getDueDate() {
         return this.duedate;
     }
 
@@ -134,7 +134,7 @@ public class Demand implements Partitionable {
      * Returns the date on which the demand is planned
      * @return plan date of the demand
      */
-    public LocalDateTime getPlanDate() {
+    LocalDateTime getPlanDate() {
         return this.plandate;
     }
 
@@ -142,7 +142,7 @@ public class Demand implements Partitionable {
      * Returns the plan to which this demand belongs
      * @return Plan which this demand is a part of
      */
-    public Plan getPlan() {
+    Plan getPlan() {
         return this.plan;
     }
 
@@ -150,7 +150,7 @@ public class Demand implements Partitionable {
      * Returns the name of the plan to which this demand belongs
      * @return String name of the plan which this demand is a part of
      */
-    public String getPlanName() {
+    String getPlanName() {
         return this.plan.getID();
     }
 
@@ -159,7 +159,7 @@ public class Demand implements Partitionable {
      * Returns a list of TaskPlan objects that satisfy this demand
      * @return List<TaskPlan> that are used to satisfy this demand
      */
-    public List<TaskPlan> getDeliveryTaskPlans() {
+    List<TaskPlan> getDeliveryTaskPlans() {
         return this.delivery_taskplans;
     }
 
@@ -167,14 +167,14 @@ public class Demand implements Partitionable {
      * Adds a TaskPlan to the list of task plans that satisfy this demand
      * @param tp TaskPlan that partially or fully satisfies this demand
      */
-    public void addDeliveryTaskPlan(TaskPlan tp) {
+    void addDeliveryTaskPlan(TaskPlan tp) {
         this.delivery_taskplans.add(tp);
     }
 
     /**
      * Ask the demand to go plan itself and then compute its planned date/quantity
      */
-    public void plan() {
+    void plan() {
 
         JobShop.LOG("Planning for demand: " + this.id, DEBUG_LEVELS.DETAILED);
 
@@ -236,7 +236,7 @@ public class Demand implements Partitionable {
     /**
      * update partitionid from the SKU
      */
-    public void updatePartitionId() {
+    void updatePartitionId() {
         this.partitionid = this.getSKU().getPartitionId();
     }
 
@@ -255,7 +255,7 @@ public class Demand implements Partitionable {
      * to an output csv file
      * @return String that represents the demand (for output purposes)
      */
-    public String dmdplanString() {
+    String dmdplanString() {
         return this.plan.getID() + "," + this.sku + "," + this.id +
                "," + this.priority + "," + this.dueqty +
                "," + this.duedate + "," + this.planqty +

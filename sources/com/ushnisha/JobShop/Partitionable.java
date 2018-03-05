@@ -28,7 +28,7 @@ package com.ushnisha.JobShop;
 /** An inteface that represents a group of partitionalble classes
  *  within a jobshop model
  */
-public interface Partitionable {
+interface Partitionable {
 
     /**
      * returns the partitionid of the Partitionalble object

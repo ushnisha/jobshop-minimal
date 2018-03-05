@@ -23,12 +23,13 @@
  *
  */
 
- package com.ushnisha.JobShop;
+package com.ushnisha.JobShop;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.nio.file.InvalidPathException;
 import java.nio.charset.Charset;
 import java.nio.file.StandardOpenOption;
 
@@ -60,14 +61,14 @@ import java.sql.PreparedStatement;
  */
 public class JobShop {
 
-    public static enum DEBUG_LEVELS { NONE, MINIMAL, STANDARD, DETAILED, MAXIMAL };
-    public static DEBUG_LEVELS DEBUG = DEBUG_LEVELS.MINIMAL;
+    static enum DEBUG_LEVELS { NONE, MINIMAL, STANDARD, DETAILED, MAXIMAL };
+    static DEBUG_LEVELS DEBUG = DEBUG_LEVELS.MINIMAL;
 
-    public static Path logDir;
-    public static Path logFile;
-    public static Path goodFile;
-    public static Path badFile;
-    public static Path testplanoutFile = null;
+    private static Path logDir;
+    private static Path logFile;
+    private static Path goodFile;
+    private static Path badFile;
+    private static Path testplanoutFile = null;
 
     private static DateTimeFormatter sqliteDFS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -92,7 +93,7 @@ public class JobShop {
     private Statement statement;
 
     private static boolean cleandata = false;
-    public static final Charset charset = Charset.forName("ISO-8859-1");
+    static final Charset charset = Charset.forName("ISO-8859-1");
 
     /**
      * Main function that is run for simulating a JobShop planning process
@@ -102,8 +103,14 @@ public class JobShop {
      *             after importing the Plan file from the data directory
      */
     public static void main(String args[]) {
-		
-        JobShop jshop = new JobShop(args);
+
+        // Make sure that exactly one argument (option file name/path)
+        // is specified
+        assert(args.length == 1);
+
+        Path optionFile = Paths.get(args[0]);
+
+        JobShop jshop = new JobShop(optionFile);
         List<Plan> pls = new ArrayList<Plan>();
 
         if (jshop.options.containsKey("default_plan")) {
@@ -115,8 +122,7 @@ public class JobShop {
 		}
 		
         for (Plan p : pls) {
-            SimpleJobShopSolver solver = new SimpleJobShopSolver(jshop);
-            solver.generatePlan(p);
+            jshop.generatePlan(p);
         }
 
         jshop.print(pls);
@@ -134,7 +140,7 @@ public class JobShop {
      * is MINIMAL or greater
      * @param message String The string that must be logged
      */
-    public static void LOG(String message) {
+    static void LOG(String message) {
         JobShop.LOG(message, false, DEBUG_LEVELS.MINIMAL);
     }
 
@@ -145,7 +151,7 @@ public class JobShop {
      * @param toStdOut boolean log to both standard output and log file
      *                         if true, else log only to log file
      */
-    public static void LOG(String message, boolean toStdOut) {
+    static void LOG(String message, boolean toStdOut) {
         JobShop.LOG(message, toStdOut, DEBUG_LEVELS.MINIMAL);
     }
 
@@ -157,7 +163,7 @@ public class JobShop {
      *                    be greater than or equal to this value to log
      *                    this message
      */
-    public static void LOG(String message, DEBUG_LEVELS debug_level) {
+    static void LOG(String message, DEBUG_LEVELS debug_level) {
         JobShop.LOG(message, false, debug_level);
     }
 
@@ -170,7 +176,7 @@ public class JobShop {
      *                    be greater than or equal to this value to log
      *                    this message
      */
-    public static void LOG(String message, boolean toStdOut, DEBUG_LEVELS debug_level) {
+    static void LOG(String message, boolean toStdOut, DEBUG_LEVELS debug_level) {
 
         if (DEBUG.ordinal() >= debug_level.ordinal()) {
 
@@ -188,7 +194,7 @@ public class JobShop {
      * @param currentPath Path of the file to which we write the log data
      * @param datarec String The data record to log to appropriate file
      */
-    public static void LOGDATA(Path currentPath, String datarec) {
+    private static void LOGDATA(Path currentPath, String datarec) {
         LOGDATA(currentPath, datarec, true);
     }
 
@@ -198,7 +204,7 @@ public class JobShop {
      * @param datarec String The data record to log to appropriate file
      * @param append boolean value if we should append to the file or overwrite
      */
-    public static void LOGDATA(Path currentPath, String datarec, boolean append) {
+    private static void LOGDATA(Path currentPath, String datarec, boolean append) {
 
         if (currentPath == null) {
             return;
@@ -224,11 +230,18 @@ public class JobShop {
 
     /**
      * Constructor for the JobShop object
-     * @param args String[] representing the options used to
-     *          read the dataset and create the JobShop model.
+     * @param optionFile Path containing the path to the options file
      */
-    public JobShop(String[] args) {
-		
+    public JobShop(Path optionFile) {
+
+        // First check to make sure the optionFile is valid and exists
+        if (Files.notExists(optionFile)) {
+            System.err.println("\nERROR! Unable to file valid file: " + optionFile);
+            System.err.println("Please check to make sure the file exists...");
+            System.err.println("Terminating program!\n");
+            System.exit(101);
+        }
+
         this.plans = new HashMap<String,Plan>();
         this.calendars = new HashMap<String,Calendar>();
         this.skus = new HashMap<String,SKU>();
@@ -244,7 +257,7 @@ public class JobShop {
         this.connection = null;
         this.statement = null;
 
-        this.processOptions(args);
+        this.processOptions(optionFile);
         this.loadData();
         this.performStaticDataValidation();
         this.runStaticAnalysis();
@@ -390,32 +403,14 @@ public class JobShop {
 
     /**
      * Process the options file and initialize suitable variables
-     * @param args String[] Array of strings which should currently
-     *                      contain the name of the option file
+     * @param optionFile Path containing the name of the options file
      */
-    private void processOptions(String args[]) {
+    private void processOptions(Path optionFile) {
 
-        // Process the input argument; currently only one argument
-	    // is supported
-	    // (1) a filename that points to the option file to read and process
-        // If no argument is provided, then default options are set
-
-        if (args.length != 0 && args.length != 1) {
-            usage();
-        }
-
-        if (args.length == 0) {
-            // No option file specified
-            this.options.put("input_mode", "FLATFILE");
-            this.options.put("datadir", "./data");
-            return;
-        }
-
-        Path path = Paths.get(args[0]);
         List<String> lines = new ArrayList<String>();
 
         try {
-            lines = Files.readAllLines(path, charset);
+            lines = Files.readAllLines(optionFile, charset);
         } catch (IOException e) {
             JobShop.LOG(e.getMessage());
         }
@@ -478,14 +473,14 @@ public class JobShop {
                     }
                 }
                 else {
-                    this.options.put("datadir", "./data");
+                    System.err.println("Terminating Program! datadir option not specified!");
+                    System.exit(404);
                 }
             }
             else if (mode.equals("DATABASE")) {
                 if (!this.options.containsKey("db_connection_string")) {
-                    this.options.put("db_connection_string", "jdbc:sqlite:./db/jobshop.db");
-                    this.options.put("db_username", "");
-                    this.options.put("db_password", "");
+                    System.err.println("Terminating Program! db_connection_string option not specified!");
+                    System.exit(404);
                 }
                 try {
 
@@ -501,9 +496,8 @@ public class JobShop {
             }
         }
         else {
-            this.options.put("input_mode", "FLATFILES");
-            this.options.put("datadir", "./data");
-            this.datadir = this.options.get("datadir");
+            System.err.println("Error! input_mode option not specified.  Terminating program...");
+            System.exit(404);
         }
 
         // Check for the output_mode option; default is PRODUCTION
@@ -1458,12 +1452,22 @@ public class JobShop {
     }
 
     /**
-     * Return a Map of Demands (keyed by unique demand identifier) of
-     * the demands in this JobShop model
-     * @return Map of Demands (keyed by unique demand identifier)
+     * Generates a plan for the given plan; we plan one demand at a time
+     * in the order of ascending priority (lower value of priority means
+     * a more important demand)
+     * @param plan Plan for which we are generating the jobshop plan
      */
-    public Map<String, Demand> getDemands() {
-        return this.demands;
+    public void generatePlan(Plan plan) {
+
+        List<Demand> demands = this.demands.values().stream()
+                                   .filter(d -> d.getPlan().equals(plan))
+                                   .sorted(Comparator.comparing(Demand::getPriority))
+                                   .collect(Collectors.toList());
+
+        // Plan the demands one by one
+        for (Demand dem : demands) {
+            dem.plan();
+        }
     }
 
     /**
@@ -1886,7 +1890,7 @@ public class JobShop {
      * @return String[] an array of string we split the input record into
      *                  using the regex parameter
      */
-    public static String[] getParts(String rec, String regex) {
+    private static String[] getParts(String rec, String regex) {
         String[] parts = rec.split(regex, -1);
         for (int i=0; i < parts.length; i++) {
             parts[i] = parts[i].trim();
@@ -2023,7 +2027,7 @@ public class JobShop {
     /**
      * A utility function to print out usage message for this program
      */
-    public static void usage() {
+    private static void usage() {
         System.out.println("Usage is:");
         System.out.println("\tjava -jar bin/JobShop.jar <path to option file>");
         System.out.println("\t... Check the Wiki page at:");

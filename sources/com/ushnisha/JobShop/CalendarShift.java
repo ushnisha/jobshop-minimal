@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
  * on the type of the calendar, its value indicates the behaviour/availability of
  * the calendar during the period of that shift.
  */
-public class CalendarShift {
+class CalendarShift {
 
     private Calendar cal;
     private int shiftID;
@@ -52,7 +52,7 @@ public class CalendarShift {
      * @param p priority of the shift (used in planning)
      * @param val value of the shift; for efficiency calendars this is a value between 0 and 1
      */
-    public CalendarShift(Calendar c, int id, LocalDateTime st, LocalDateTime en, int p, double val) {
+    CalendarShift(Calendar c, int id, LocalDateTime st, LocalDateTime en, int p, double val) {
         this.cal = c;
         this.shiftID = id;
         this.start = st;
@@ -65,7 +65,7 @@ public class CalendarShift {
      * Return the priority of the shift
      * @return priority of the shift
      */
-    public int getPriority() {
+    int getPriority() {
         return this.priority;
     }
 
@@ -73,7 +73,7 @@ public class CalendarShift {
      * Return the value of the shift
      * @return value of the shift
      */
-    public double getValue() {
+    double getValue() {
         return this.value;
     }
 
@@ -81,7 +81,7 @@ public class CalendarShift {
      * Return true if the shift is working; false if it is a holiday
      * @return boolean value representing if the shift is working or holiday
      */
-    public boolean isWorking() {
+    boolean isWorking() {
         return (this.value > ZEROPLUS);
     }
 
@@ -89,7 +89,7 @@ public class CalendarShift {
      * Return the start date/time of the shift
      * @return start date/time of the shift
      */
-    public LocalDateTime getStart() {
+    LocalDateTime getStart() {
         return this.start;
     }
 
@@ -97,7 +97,7 @@ public class CalendarShift {
      * Return the end date/time of the shift
      * @return end date/time of the shift
      */
-    public LocalDateTime getEnd() {
+    LocalDateTime getEnd() {
         return this.end;
     }
 

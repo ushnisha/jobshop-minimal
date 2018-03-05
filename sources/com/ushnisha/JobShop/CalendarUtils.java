@@ -35,21 +35,9 @@ import static com.ushnisha.JobShop.JobShop.LOG;
 /**
  * A utility class for Calendar and CalendarShift based calculations
  */
-public class CalendarUtils {
+class CalendarUtils {
 
     private static double ZEROPLUS = 0.000001;
-
-    /**
-     * Calculates a start date given an end date and the lead time in minutes
-     * It simulates an "End-On-Or-Before" behaviour
-     * @param end LocalDateTime representing an end date/time
-     * @param tm long value representing the time in minutes between a start and end
-     * @return LocalDateTime value representing a start date/time given
-     *          by end - tm
-     */
-    public static LocalDateTime calcStart(LocalDateTime end, long tm) {
-        return end.minusMinutes(tm);
-    }
 
     /**
      * Calculates a start date given an end date and the lead time in minutes
@@ -64,7 +52,7 @@ public class CalendarUtils {
      *          an end date/time and a lead time in minutes and a calendar
      *          The calculation will account for working shifts, efficicencies etc.
      */
-    public static DateRange calcEndBefore(Calendar cal, LocalDateTime end,
+    static DateRange calcEndBefore(Calendar cal, LocalDateTime end,
                                           long tm) {
 
         List<CalendarShift> shifts = cal.getShifts();
@@ -104,18 +92,6 @@ public class CalendarUtils {
 
     /**
      * Calculates an end date given a start date and the lead time in minutes
-     * It simulates a "Start-On-Or-After" behaviour
-     * @param start LocalDateTime representing an end date/time
-     * @param tm long value representing the time in minutes between a start and end
-     * @return LocalDateTime value representing an end date/time given
-     *          by start + tm
-     */
-    public static LocalDateTime calcEnd(LocalDateTime start, long tm) {
-        return start.plusMinutes(tm);
-    }
-
-    /**
-     * Calculates an end date given a start date and the lead time in minutes
      * It simulates a "Start-On-Or-After" behaviour while representing the
      * calendar availability
      * @param cal a Calendar that specifies the working shifts and efficiency
@@ -127,7 +103,7 @@ public class CalendarUtils {
      *          a start date/time and a lead time in minutes and a calendar
      *          The calculation will account for working shifts, efficicencies etc.
      */
-    public static DateRange calcStartAfter(Calendar cal, LocalDateTime start,
+    static DateRange calcStartAfter(Calendar cal, LocalDateTime start,
                                         long tm) {
         List<CalendarShift> shifts = cal.getShifts();
         LocalDateTime validStart = calcValidDateOnOrAfter(cal, start);
@@ -172,7 +148,7 @@ public class CalendarUtils {
      * @return LocalDateTime value representing the earliest date/time that
      *          falls on or before dt, and lies in a working shift
      */
-     public static LocalDateTime calcValidDateOnOrBefore(Calendar cal, LocalDateTime dt) {
+     private static LocalDateTime calcValidDateOnOrBefore(Calendar cal, LocalDateTime dt) {
 
         LocalDateTime date = dt;
 
@@ -207,7 +183,7 @@ public class CalendarUtils {
      * @return LocalDateTime value representing the earliest date/time that
      *          falls on or after dt, and lies in a working shift
      */
-     public static LocalDateTime calcValidDateOnOrAfter(Calendar cal, LocalDateTime dt) {
+     private static LocalDateTime calcValidDateOnOrAfter(Calendar cal, LocalDateTime dt) {
 
         LocalDateTime date = dt;
 
@@ -244,7 +220,7 @@ public class CalendarUtils {
      * @return int value that represents the index in the list of shifts that
      *          identifies the shift within which the specified date falls
      */
-    public static int getShiftIndex(List<CalendarShift> shifts, LocalDateTime dt) {
+    private static int getShiftIndex(List<CalendarShift> shifts, LocalDateTime dt) {
 
         int min = 0;
         int max = shifts.size();
@@ -295,7 +271,7 @@ public class CalendarUtils {
      * @return int value that represents the index in the list of shifts that
      *          is a working shift that is lesser than or equal to the input index value
      */
-    public static int getPrevWorkingShiftIndex(List<CalendarShift> shifts, int index) {
+    private static int getPrevWorkingShiftIndex(List<CalendarShift> shifts, int index) {
         int idx = index;
         while (!shifts.get(idx).isWorking()) {
             idx--;
@@ -314,7 +290,7 @@ public class CalendarUtils {
      * @return int value that represents the index in the list of shifts that
      *          is a working shift that is greater than or equal to the input index value
      */
-    public static int getNextWorkingShiftIndex(List<CalendarShift> shifts, int index) {
+    private static int getNextWorkingShiftIndex(List<CalendarShift> shifts, int index) {
         int idx = index;
         while (!shifts.get(idx).isWorking()) {
             idx++;

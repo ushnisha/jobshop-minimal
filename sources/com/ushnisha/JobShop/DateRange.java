@@ -31,7 +31,7 @@ import java.time.temporal.ChronoUnit;
 /**
  *  A utility class that represents a start and end date - a Date Range
  */
-public class DateRange {
+class DateRange {
 
     private LocalDateTime start;
     private LocalDateTime end;
@@ -41,7 +41,7 @@ public class DateRange {
      * @param st LocalDateTime value that represents the start of the date range
      * @param en LocalDateTime value that represnets the end of the date range
      */
-    public DateRange(LocalDateTime st, LocalDateTime en) {
+    DateRange(LocalDateTime st, LocalDateTime en) {
         this.start = st;
         this.end = en;
     }
@@ -50,7 +50,7 @@ public class DateRange {
      * Returns the start of the date range
      * @return LocalDateTime representing the start of the date range
      */
-    public LocalDateTime getStart() {
+    LocalDateTime getStart() {
         return this.start;
     }
 
@@ -58,7 +58,7 @@ public class DateRange {
      * Returns the end of the date range
      * @return LocalDateTime representing the end of the date range
      */
-    public LocalDateTime getEnd() {
+    LocalDateTime getEnd() {
         return this.end;
     }
     
@@ -67,7 +67,7 @@ public class DateRange {
      * @return long value representing the length of time in this
      *         DateRange, measured in minutes
      */
-    public long getLength() {
+    long getLength() {
         return start.until(end, ChronoUnit.MINUTES);
     }
 
@@ -77,7 +77,7 @@ public class DateRange {
      * @param dr DateRange with which we check to see if this DateRange intersects
      * @return long value representing the number of minutes they intersect
      */
-    public long intersectLength(DateRange dr) {
+    long intersectLength(DateRange dr) {
 
         // Intersection case 1 - dr within this date range
         if (this.contains(dr.getStart()) && this.contains(dr.getEnd())) {
@@ -115,7 +115,7 @@ public class DateRange {
      * @return boolean value true if the LocalDateTime falls within this
      * DateRange
      */
-    public boolean contains(LocalDateTime dt) {
+    boolean contains(LocalDateTime dt) {
 
         if ( (dt.isEqual(this.getStart()) || dt.isAfter(this.getStart())) &&
              (dt.isEqual(this.getEnd()) || dt.isBefore(this.getEnd()))) {

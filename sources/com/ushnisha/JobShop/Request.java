@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
  * a demand upstream.  It involves a quantity to be delivered by a given time
  * under the constraints of a given Plan
  */
-public class Request {
+class Request {
 
     private Demand demand;
     private long quantity;
@@ -49,7 +49,7 @@ public class Request {
      * @param p Plan instance that provides additional constraints that
      *          must be used during planning to satisfy this Request
      */
-    public Request (Demand dmd, long qty, LocalDateTime dt, Plan p) {
+    Request (Demand dmd, long qty, LocalDateTime dt, Plan p) {
         this.demand = dmd;
         this.quantity = qty;
         this.date = dt;
@@ -61,7 +61,7 @@ public class Request {
      * @return Demand value representing the unique Demand
      *         for which the Request was created
      */
-    public Demand getDemand() {
+    Demand getDemand() {
         return this.demand;
     }
 
@@ -71,7 +71,7 @@ public class Request {
      * @return String value representing the unique identity of the Demand
      *         for which the Request was created
      */
-    public String getID() {
+    String getID() {
         return this.demand.getID();
     }
 
@@ -82,7 +82,7 @@ public class Request {
      *         quantity since we may have other constraints that increase
      *         or decrease this quantity
      */
-    public long getQuantity() {
+    long getQuantity() {
         return this.quantity;
     }
 
@@ -91,7 +91,7 @@ public class Request {
      * @return LocalDateTime representing the date by which the requested
      *         quantity must be provided by the upstream object that is sent the request
      */
-    public LocalDateTime getDate() {
+    LocalDateTime getDate() {
         return this.date;
     }
 
@@ -100,7 +100,7 @@ public class Request {
      * request must be planned
      * @return Plan which controls how the request is planned
      */
-    public Plan getPlan() {
+    Plan getPlan() {
         return plan;
     }
 }

@@ -46,7 +46,7 @@ import static com.ushnisha.JobShop.JobShop.LOG;
  * into the finished SKU to meet the demand.  A Task may or may not load
  * a workcenter.
  */
-public class Task implements Partitionable {
+class Task implements Partitionable {
 
     private String taskNum;
     private String taskid;
@@ -83,7 +83,7 @@ public class Task implements Partitionable {
      * @param maxls long value representing the maximum lot size for
      *              a TaskPlan of this task
      */
-    public Task(String id, SKU s, long sut, long tp,
+    Task(String id, SKU s, long sut, long tp,
                 long minls, long maxls) {
 
         this.taskid = id;
@@ -110,7 +110,7 @@ public class Task implements Partitionable {
      * Set the successor for this task
      * @param t Task which is the successor of this Task
      */
-    public void setSuccessor(Task t) {
+    void setSuccessor(Task t) {
         this.succ = t;
     }
 
@@ -118,7 +118,7 @@ public class Task implements Partitionable {
      * Set the predecessor for this task
      * @param t Task which is the predecessor of this Task
      */
-    public void setPredecessor(Task t) {
+    void setPredecessor(Task t) {
         this.pred = t;
     }
 
@@ -126,7 +126,7 @@ public class Task implements Partitionable {
      * Return the successor for this task
      * @return Task which is the successor of this Task
      */
-    public Task getSuccessor() {
+    Task getSuccessor() {
         return this.succ;
     }
 
@@ -134,7 +134,7 @@ public class Task implements Partitionable {
      * Return the predecessor for this task
      * @return Task which is the predecessor of this Task
      */
-    public Task getPredecessor() {
+    Task getPredecessor() {
         return this.pred;
     }
 
@@ -145,7 +145,7 @@ public class Task implements Partitionable {
      *         This value can be computed through static analysis of the
      *         JobShop model and can be used by planning algorithms
      */
-    public int getLevel() {
+    int getLevel() {
         return this.level;
     }
 
@@ -153,7 +153,7 @@ public class Task implements Partitionable {
      * Sets the level of this task
      * @param l int value representing the computed level of this task
      */
-    public void setLevel(int l) {
+    void setLevel(int l) {
         JobShop.LOG("Setting level of Task: " + this.toString() + " : " + l,
                     JobShop.DEBUG_LEVELS.MINIMAL);
         this.level = l;
@@ -218,7 +218,7 @@ public class Task implements Partitionable {
      *                 value may be given a higher preference to
      *                 load/use when planning a TaskPlan of this task
      */
-    public void addWorkcenter(Workcenter w, Integer priority) {
+    void addWorkcenter(Workcenter w, Integer priority) {
         this.workcenters.put(w, priority);
     }
 
@@ -226,7 +226,7 @@ public class Task implements Partitionable {
      * Get a list of the workcenters associated with this task
      * @return List<Workcenter> list of workcenters associated with this task
      */
-    public Set<Workcenter> getWorkcenters() {
+    Set<Workcenter> getWorkcenters() {
         return this.workcenters.keySet();
     }
 
@@ -234,7 +234,7 @@ public class Task implements Partitionable {
      * Returns the list of TaskPlans planned for this Task
      * @return List<TaskPlan> associated with this Task
      */
-    public List<TaskPlan> getTaskPlans() {
+    List<TaskPlan> getTaskPlans() {
         return this.plans;
     }
 
@@ -245,7 +245,7 @@ public class Task implements Partitionable {
      * @return List<TaskPlan> associated with this Task & Plan
      *
      */
-    public List<TaskPlan> getTaskPlans(Plan p) {
+    List<TaskPlan> getTaskPlans(Plan p) {
         return this.plans.stream()
                .filter(t -> t.getPlan().equals(p))
                .collect(Collectors.toList());
@@ -255,7 +255,7 @@ public class Task implements Partitionable {
      * Associate a TaskPlan with this Task
      * @param tp TaskPlan that is associated with this Task
      */
-    public void addTaskPlan(TaskPlan tp) {
+    void addTaskPlan(TaskPlan tp) {
         this.plans.add(tp);
     }
 
@@ -272,7 +272,7 @@ public class Task implements Partitionable {
      * @return DateRange value that represents the start and end dates
      *         of the TaskPlan as per Workcenter availability
      */
-    public DateRange queryWorkcentersForEndBefore(long qty, LocalDateTime enddate, Plan p) {
+    private DateRange queryWorkcentersForEndBefore(long qty, LocalDateTime enddate, Plan p) {
 
         long baseLT = getBaseLT(qty);
         DateRange res_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
@@ -390,7 +390,7 @@ public class Task implements Partitionable {
      * @return DateRange value that represents the start and end dates
      *         of the TaskPlan as per Workcenter availability
      */
-    public DateRange queryWorkcentersForStartAfter(long qty, LocalDateTime startdate, Plan p) {
+    private DateRange queryWorkcentersForStartAfter(long qty, LocalDateTime startdate, Plan p) {
 
         long baseLT = getBaseLT(qty);
         DateRange res_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
@@ -492,7 +492,7 @@ public class Task implements Partitionable {
      * @param quantity long value representing the quantity to be planned
      * @return long value representing the base lead time in minutes
      */
-    public long getBaseLT(long quantity) {
+    private long getBaseLT(long quantity) {
         return this.setup_time + quantity * this.time_per;
     }
 
@@ -504,7 +504,7 @@ public class Task implements Partitionable {
      * @param req Request that is made by the downstream Task or Demand
      * @return Promise that is the response to the input request, req
      */
-    public Promise request(Request req) {
+    Promise request(Request req) {
 
         Demand dmd = req.getDemand();
         long origQty = req.getQuantity();
@@ -567,7 +567,7 @@ public class Task implements Partitionable {
      * @param dr DateRange to use for start and end of the TaskPlan being planned
      * @return Promise which contains the details of the TaskPlans planned
      */
-    public Promise plan(Request req, DateRange dr) {
+    private Promise plan(Request req, DateRange dr) {
 
         JobShop.LOG("Planning Task: " + this.taskNum + " between " +
                     dr.getStart() + " and " + dr.getEnd() +
@@ -597,7 +597,7 @@ public class Task implements Partitionable {
      * @return Promise which contains the details of the TaskPlans planned
      *         and returned to the successor Task/Demand.
      */
-    public Promise plan(Request req, Promise promise) {
+    private Promise plan(Request req, Promise promise) {
 
         long qty = 0;
         LocalDateTime start = LocalDateTime.MIN;
@@ -653,7 +653,7 @@ public class Task implements Partitionable {
      * @param req Request which we are trying to satisfy
      * @return Promise representing the matching ReleasedWorkOrders
      */
-     public Promise checkReleasedWorkOrdersForQuantity(Request req) {
+     private Promise checkReleasedWorkOrdersForQuantity(Request req) {
 
         Demand dmd = req.getDemand();
         long origQty = req.getQuantity();
@@ -754,7 +754,7 @@ public class Task implements Partitionable {
      * @param allPromises List<Promise> a list of input promises
      * @return Promise combined promise
      */
-     public Promise combinePromises(Demand dmd, List<Promise> allPromises) {
+     private Promise combinePromises(Demand dmd, List<Promise> allPromises) {
 
         Promise finalPromise = new Promise(dmd, new ArrayList<TaskPlan>());
 
@@ -771,7 +771,7 @@ public class Task implements Partitionable {
      * Calculate EPST of a task
      * @param dmd Demand for which we are calculating EPST
      */
-    public void calculateEPST(Demand dmd) {
+    void calculateEPST(Demand dmd) {
 
         long baseLT = getBaseLT(dmd.getDueQuantity());
 
@@ -832,7 +832,7 @@ public class Task implements Partitionable {
      * Calculate LPST of a task
      * @param dmd Demand for which we are calculating LPST
      */
-    public void calculateLPST(Demand dmd) {
+    void calculateLPST(Demand dmd) {
 
         long baseLT = getBaseLT(dmd.getDueQuantity());
 
@@ -913,7 +913,7 @@ public class Task implements Partitionable {
      * Set level to input parameter and propagate downstream
      * @param lvl integer value representing the level of this Task
      */
-    public void setLevelAndPropagate(int lvl) {
+    void setLevelAndPropagate(int lvl) {
         this.setLevel(lvl);
         if (this.succ != null) {
             this.succ.setLevelAndPropagate(lvl + 1);
@@ -924,7 +924,7 @@ public class Task implements Partitionable {
      * Associates ReleasedWorkOrder for this Task
      * @param wo ReleasedWorkOrder that for this Task
      */
-    public void addReleasedWorkOrder(ReleasedWorkOrder wo) {
+    void addReleasedWorkOrder(ReleasedWorkOrder wo) {
         this.relworkorders.add(wo);
     }
 
@@ -932,7 +932,7 @@ public class Task implements Partitionable {
      * Returns the unique name/number for this task
      * @return String representing the unique name/number of this Task
      */
-    public String getTaskNumber() {
+    String getTaskNumber() {
         return this.taskNum;
     }
 
@@ -940,7 +940,7 @@ public class Task implements Partitionable {
      * Returns the id/step for this task
      * @return String representing the id/step of this Task
      */
-    public String getTaskID() {
+    String getTaskID() {
         return this.taskid;
     }
 
@@ -948,7 +948,7 @@ public class Task implements Partitionable {
      * Returns the SKU corresponding to this task
      * @return SKU representing the SKU for which this Task is planned
      */
-    public SKU getSKU() {
+    SKU getSKU() {
         return this.sku;
     }
 
@@ -956,7 +956,7 @@ public class Task implements Partitionable {
      * Returns the number of workcenters associated with this task
      * @return int representing the number of workcenters associated with this task
      */
-    public int getWorkcenterCount() {
+    int getWorkcenterCount() {
         return this.workcenters.size();
     }
 
@@ -964,7 +964,7 @@ public class Task implements Partitionable {
      * Returns the time_per_unit associated with this task
      * @return int representing the time on a workcenter per unit of this task
      */
-    public long getTimePer() {
+    long getTimePer() {
         return this.time_per;
     }
 
@@ -973,7 +973,7 @@ public class Task implements Partitionable {
      * @param dmd Demand for which we are requesting EPST of this Task
      * @return LocalDateTime representing EPST of task for the Demand dmd
      */
-    public LocalDateTime getEPST(Demand dmd) {
+    LocalDateTime getEPST(Demand dmd) {
         return this.EPST.get(dmd);
     }
 
@@ -982,7 +982,7 @@ public class Task implements Partitionable {
      * @param dmd Demand for which we are requesting EPET of this Task
      * @return LocalDateTime representing EPET of task for the Demand dmd
      */
-    public LocalDateTime getEPET(Demand dmd) {
+    LocalDateTime getEPET(Demand dmd) {
         return this.EPET.get(dmd);
     }
 
@@ -991,7 +991,7 @@ public class Task implements Partitionable {
      * @param dmd Demand for which we are requesting LPST of this Task
      * @return LocalDateTime representing LPST of task for the Demand dmd
      */
-    public LocalDateTime getLPST(Demand dmd) {
+    LocalDateTime getLPST(Demand dmd) {
         return this.LPST.get(dmd);
     }
 
@@ -1000,7 +1000,7 @@ public class Task implements Partitionable {
      * @param dmd Demand for which we are requesting LPET of this Task
      * @return LocalDateTime representing LPET of task for the Demand dmd
      */
-    public LocalDateTime getLPET(Demand dmd) {
+    LocalDateTime getLPET(Demand dmd) {
         return this.LPET.get(dmd);
     }
 

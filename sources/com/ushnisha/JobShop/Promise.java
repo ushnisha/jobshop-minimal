@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * The upstream object creates a Promise as a response to a Request and
  * sends the Promise back to the downstream requesting object.
  */
-public class Promise {
+class Promise {
 
     private Demand demand;
     private List<TaskPlan> taskplans;
@@ -48,7 +48,7 @@ public class Promise {
      *            on a different date than requested.  It is up to the requestor
      *            to accept the Promise or reject it.
      */
-    public Promise (Demand dmd, List<TaskPlan> tps) {
+    Promise (Demand dmd, List<TaskPlan> tps) {
         this.demand = dmd;
         this.taskplans = tps;
     }
@@ -58,7 +58,7 @@ public class Promise {
      * @return demand Demand value representing the Demand associated
      *                       with the Request for which this promise is a response.
      */
-    public Demand getDemand() {
+    Demand getDemand() {
         return this.demand;
     }
 
@@ -68,7 +68,7 @@ public class Promise {
      *            this is the same as the unique identifier of the Demand
      *            associated with the Request for which this promise is a response.
      */
-    public String getID() {
+    String getID() {
         return this.demand.getID();
     }
 
@@ -76,7 +76,7 @@ public class Promise {
      * Add an input TaskPlan to the list of TaskPlans contained in this promise
      * @param tp TaskPlan the TaskPlan to add to the Promise
      */
-     public void addTaskPlan(TaskPlan tp) {
+     void addTaskPlan(TaskPlan tp) {
          this.taskplans.add(tp);
      }
 
@@ -88,7 +88,7 @@ public class Promise {
      *         on a different date than requested.  It is up to the requestor
      *         to accept the Promise or reject it.
      */
-    public List<TaskPlan> getTaskPlans() {
+    List<TaskPlan> getTaskPlans() {
         return this.taskplans;
     }
 

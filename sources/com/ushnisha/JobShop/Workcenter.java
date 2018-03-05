@@ -23,7 +23,7 @@
  *
  */
 
- package com.ushnisha.JobShop;
+package com.ushnisha.JobShop;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +39,7 @@ import static com.ushnisha.JobShop.JobShop.LOG;
  * The above terms (workcenter, machine, resource) may be used interchangeably
  * at various points in this project
  */
-public class Workcenter implements Partitionable {
+class Workcenter implements Partitionable {
 
     private String name;
     private Calendar efficiency_calendar;
@@ -63,7 +63,7 @@ public class Workcenter implements Partitionable {
      *        A planning algorithm can use this value to try and schedule the
      *        tasks on this workcenter as a priority
      */
-    public Workcenter (String n, Calendar cal, int nsetups, int cindex) {
+    Workcenter (String n, Calendar cal, int nsetups, int cindex) {
         this.name = n;
         this.efficiency_calendar = cal;
         this.max_setups_per_shift = nsetups;
@@ -80,7 +80,7 @@ public class Workcenter implements Partitionable {
      * @return Calendar that represents the working/efficiency calendar
      *         of this workcenter
      */
-    public Calendar getCalendar() {
+    Calendar getCalendar() {
         return this.efficiency_calendar;
     }
 
@@ -91,7 +91,7 @@ public class Workcenter implements Partitionable {
      *         and the more critical it is to resolve overload problems
      *          on this workcenter first
      */
-    public int getMinLevel() {
+    int getMinLevel() {
         return this.min_level;
     }
 
@@ -99,7 +99,7 @@ public class Workcenter implements Partitionable {
      * updates the level field of the workcenter
      * @param l int value representing the min_level of the workcenter
      */
-    public void setMinLevel(int l) {
+    void setMinLevel(int l) {
         this.min_level = l;
     }
 
@@ -110,8 +110,16 @@ public class Workcenter implements Partitionable {
      *         and the more critical it is to resolve overload problems
      *          on this workcenter first
      */
-    public int getMaxLevel() {
+    int getMaxLevel() {
          return this.max_level;
+    }
+
+    /**
+     * updates the level field of the workcenter
+     * @param l int value representing the max_level of the workcenter
+     */
+    void setMaxLevel(int l) {
+        this.max_level = l;
     }
 
     /**
@@ -149,17 +157,9 @@ public class Workcenter implements Partitionable {
     }
 
     /**
-     * updates the level field of the workcenter
-     * @param l int value representing the max_level of the workcenter
-     */
-    public void setMaxLevel(int l) {
-        this.max_level = l;
-    }
-
-    /**
      * updates the min and max level fields of the workcenter
      */
-    public void updateMinMaxLevels() {
+    void updateMinMaxLevels() {
 
         if (this.tasks.size() > 0) {
           this.min_level = this.tasks.stream()
@@ -183,7 +183,7 @@ public class Workcenter implements Partitionable {
      * a placeholder heuristic which is simply the number of tasks that
      * can load this resource
      */
-    public void calculateInternalCriticality() {
+    void calculateInternalCriticality() {
         this.internal_criticality = this.tasks.size();
         JobShop.LOG("Workcenter " + this.toString() +
                     " has an internal criticality index of " +
@@ -197,7 +197,7 @@ public class Workcenter implements Partitionable {
      *         workcenter. The larger this value, the more critical it
      *         is to resolve overload problems on this workcenter
      */
-    public int getInternalCriticality() {
+    int getInternalCriticality() {
          return this.internal_criticality;
     }
 
@@ -205,7 +205,7 @@ public class Workcenter implements Partitionable {
      * Assign a Task association for this Workcenter
      * @param t Task that is associated with this workcenter and consumes time
      */
-    public void addTask(Task t) {
+    void addTask(Task t) {
         this.tasks.add(t);
     }
 
@@ -213,7 +213,7 @@ public class Workcenter implements Partitionable {
      * Gets the list of Tasks that are associated with this workcenter
      * @return List<Task> that are associated with this workcenter
      */
-    public List<Task> getTasks() {
+    List<Task> getTasks() {
         return this.tasks;
     }
 
@@ -221,7 +221,7 @@ public class Workcenter implements Partitionable {
      * Assign a TaskPlan to load this Workcenter
      * @param tp TaskPlan that is assigned to this workcenter and consumes time
      */
-    public void addTaskPlan(TaskPlan tp) {
+    void addTaskPlan(TaskPlan tp) {
         this.taskplans.add(tp);
     }
 
@@ -229,7 +229,7 @@ public class Workcenter implements Partitionable {
      * Gets the list of TaskPlans that are planned on this workcenter
      * @return List<TaskPlan> that are planned on this workcenter
      */
-    public List<TaskPlan> getTaskPlans() {
+    List<TaskPlan> getTaskPlans() {
         return this.taskplans;
     }
 
@@ -239,7 +239,7 @@ public class Workcenter implements Partitionable {
      * @return List<TaskPlan> that are planned on this workcenter for a
      *         specified, input Plan
      */
-    public List<TaskPlan> getTaskPlans(Plan p) {
+    List<TaskPlan> getTaskPlans(Plan p) {
         return this.taskplans.stream()
                    .filter(t -> t.getPlan().equals(p))
                    .collect(Collectors.toList());
@@ -254,7 +254,7 @@ public class Workcenter implements Partitionable {
      * @param p Plan under which we are trying to Plan this workcenter.  The PlanParams of
      *        this plan will impose additional constraints on the planning algorithm
      */
-    public DateRange queryEndBefore(LocalDateTime enddate, long baseLT, Plan p) {
+    DateRange queryEndBefore(LocalDateTime enddate, long baseLT, Plan p) {
 
         DateRange valid_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
 
@@ -309,7 +309,7 @@ public class Workcenter implements Partitionable {
      * @param p Plan under which we are trying to Plan this workcenter.  The PlanParams of
      *        this plan will impose additional constraints on the planning algorithm
      */
-    public DateRange queryStartAfter(LocalDateTime startdate, long baseLT, Plan p) {
+    DateRange queryStartAfter(LocalDateTime startdate, long baseLT, Plan p) {
 
         DateRange valid_DateRange = new DateRange(LocalDateTime.MIN, LocalDateTime.MAX);
 
@@ -363,7 +363,7 @@ public class Workcenter implements Partitionable {
      * @return double representing the calculated utilization in the
      *         input data range period (value between 0.0 and 1.0)
      */
-    public Double calculateUtilization(Plan pln, DateRange dr) {
+    Double calculateUtilization(Plan pln, DateRange dr) {
 
         List<ReleasedWorkOrder> rwos = new ArrayList<ReleasedWorkOrder>();
 
@@ -399,7 +399,7 @@ public class Workcenter implements Partitionable {
      *         input data range period (value between 0.0 and 1.0) in
      *         a form suitable for output to file
      */
-    public String wrkUtilString(Plan pln, DateRange dr) {
+    String wrkUtilString(Plan pln, DateRange dr) {
 
         Double util = Double.max(this.calculateUtilization(pln, dr), Double.valueOf(0.0));
         String outStr = pln.getID() + "," + this.name + "," +
@@ -412,7 +412,7 @@ public class Workcenter implements Partitionable {
      * A string representation of the workcenter
      * @return String which is the name of the workcenter
      */
-    public String getName() {
+    String getName() {
         return this.name;
     }
 
