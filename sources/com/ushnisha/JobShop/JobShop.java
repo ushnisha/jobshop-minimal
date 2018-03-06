@@ -97,31 +97,40 @@ public class JobShop {
 
     /**
      * Main function that is run for simulating a JobShop planning process
-     * @param args String[] of input arguments.  Currently, assumes:
-     *             args[0] - name of the plan for which we want to generate a plan
-     *             If args[0] is not specified it will pick the first plan available
-     *             after importing the Plan file from the data directory
+     * @param args String[] of input arguments.  Expects exactly one argument
+     *             which represents the name of the option file that contains
+     *             the details of the dataset to load and other options
+     *             to apply to generate the plan
      */
     public static void main(String args[]) {
 
         // Make sure that exactly one argument (option file name/path)
         // is specified
-        assert(args.length == 1);
+        if (args.length != 1) {
+            System.err.println("\nExpecting exactly one argument. Found: " + args.length);
+            usage();
+        }
 
         Path optionFile = Paths.get(args[0]);
 
         JobShop jshop = new JobShop(optionFile);
-        List<Plan> pls = new ArrayList<Plan>();
+        List<String> pls = new ArrayList<String>();
 
         if (jshop.options.containsKey("default_plan")) {
-            assert(jshop.plans.containsKey(jshop.options.get("default_plan")));
-			pls.add(jshop.plans.get(jshop.options.get("default_plan")));
+            String dpid = jshop.options.get("default_plan");
+            if (!jshop.plans.containsKey(dpid)) {
+                System.err.println("\nError!  default_plan : " + dpid +
+                                   " not found in the model");
+                System.err.println("Terminating...\n");
+                System.exit(404);
+            }
+			pls.add(jshop.options.get("default_plan"));
 		}
 		else {
-			pls = jshop.getPlans();
+			pls = jshop.getPlanIDs();
 		}
-		
-        for (Plan p : pls) {
+
+        for (String p : pls) {
             jshop.generatePlan(p);
         }
 
@@ -421,7 +430,12 @@ public class JobShop {
                 continue;
             }
             String[] parts = p.split("\\|");
-            assert(parts.length == 2);
+            if (parts.length != 2) {
+                System.err.println("\nError in specification of option");
+                System.err.println("Found more than 2 fields at : " + p);
+                System.err.println("Terminating...\n");
+                System.exit(103);
+            }
             this.options.put(parts[0].trim(), parts[1].trim());
         }
 
@@ -462,7 +476,6 @@ public class JobShop {
         // Check to make sure input_mode is specified
         if (this.options.containsKey("input_mode")) {
             String mode = this.options.get("input_mode");
-            assert(mode.equals("FLATFILE") || mode.equals("DATABASE"));
             if (mode.equals("FLATFILE")) {
                 if (this.options.containsKey("datadir")) {
                     this.datadir = options.get("datadir");
@@ -494,6 +507,12 @@ public class JobShop {
                     JobShop.LOG(e.getMessage());
                 }
             }
+            else {
+                System.err.println("\nIncorrect setting for 'input_mode' : " + mode);
+                System.err.println("Must be one of FLATFILE or DATABASE");
+                System.err.println("Terminating....\n");
+                System.exit(105);
+            }
         }
         else {
             System.err.println("Error! input_mode option not specified.  Terminating program...");
@@ -505,7 +524,11 @@ public class JobShop {
         // output is written to the screen to redirect to an output file.
         if (this.options.containsKey("output_mode")) {
             String mode = this.options.get("output_mode");
-            assert(mode.equals("PRODUCTION") || mode.equals("TESTPLAN"));
+            if (!mode.equals("PRODUCTION") && !mode.equals("TESTPLAN")) {
+                System.err.println("\nIncorrect setting for 'output_mode' : " + mode);
+                System.err.println("Resetting to PRODUCTION");
+                this.options.put("output_mode", "PRODUCTION");
+            }
         }
         else {
             this.options.put("output_mode", "PRODUCTION");
@@ -854,13 +877,18 @@ public class JobShop {
 
                 for (int n = 0; n < lines.size(); n++) {
                     String p = lines.get(n).trim();
-                    if (cleandata) LOGDATA(goodFile, p);
                     if (p.charAt(0) == '#') {
                         continue;
                     }
                     String[] parts = getParts(p, ",");
                     Calendar cal = calendars.get(parts[0]);
-                    assert(cal != null);
+
+                    if (cal == null) {
+                        JobShop.LOG("Unable to find calendar: " + p);
+                        if (cleandata) LOGDATA(badFile, p);
+                        continue;
+                    }
+                    if (cleandata) LOGDATA(goodFile, p);
 
                     CalendarShift cshift = new CalendarShift(cal,
                                                              Integer.parseInt(parts[1]),
@@ -886,7 +914,6 @@ public class JobShop {
                     double val = rs.getDouble("value");
 
                     Calendar cal = calendars.get(calid);
-                    assert(cal != null);
 
                     CalendarShift cshift = new CalendarShift(cal, shiftid, sstart.toLocalDateTime(),
                                                              send.toLocalDateTime(), snum, val);
@@ -932,7 +959,12 @@ public class JobShop {
                     }
                     String[] parts = getParts(p, ",");
                     Calendar cal = calendars.get(parts[1]);
-                    assert(cal != null);
+
+                    if (cal == null) {
+                        JobShop.LOG("Unable to find calendar: " + p);
+                        if (cleandata) LOGDATA(badFile, p);
+                        continue;
+                    }
 
                     if (workcenters.containsKey(parts[0])) {
                         JobShop.LOG("Workcenter already exists: " + p);
@@ -960,7 +992,6 @@ public class JobShop {
                     int criticality_idx = rs.getInt("criticality_index");
 
                     Calendar cal = calendars.get(calid);
-                    assert(cal != null);
                     Workcenter ws = new Workcenter(wrkid, cal, max_setups_per_shift, criticality_idx);
                     workcenters.put(wrkid, ws);
                     components.add(ws);
@@ -1005,9 +1036,13 @@ public class JobShop {
                     }
                     String[] parts = getParts(p, ",");
                     SKU sku = skus.get(parts[1]);
-                    assert(sku != null);
-                    String taskNum = parts[1] + "-" + parts[0];
+                    if (sku == null) {
+                        JobShop.LOG("Unable to find SKU: " + p);
+                        if (cleandata) LOGDATA(badFile, p);
+                        continue;
+                    }
 
+                    String taskNum = parts[1] + "-" + parts[0];
                     if (tasks.containsKey(taskNum)) {
                         JobShop.LOG("Task already exists: " + p);
                         if (cleandata) LOGDATA(badFile, p);
@@ -1046,7 +1081,6 @@ public class JobShop {
                     String isdel = rs.getString("is_delivery_task");
 
                     SKU sku = skus.get(skuid);
-                    assert(sku != null);
                     String taskNum = skuid + "-" + taskid;
                     Task task = new Task(taskid, sku, setup_time, per_unit_time, min_ls, max_ls);
                     tasks.put(taskNum, task);
@@ -1101,10 +1135,18 @@ public class JobShop {
                     String dmdKey = parts[0] + "-" + parts[1];
 
                     Plan plan = plans.get(parts[0]);
-                    assert(plan != null);
+                    if (plan == null) {
+                        JobShop.LOG("Unable to find plan: " + p);
+                        if (cleandata) LOGDATA(badFile, p);
+                        continue;
+                    }
 
                     SKU sku = skus.get(parts[3]);
-                    assert(sku != null);
+                    if (sku == null) {
+                        JobShop.LOG("Unable to find SKU: " + p);
+                        if (cleandata) LOGDATA(badFile, p);
+                        continue;
+                    }
 
                     if (demands.containsKey(dmdKey)) {
                         JobShop.LOG("Demand already exists: " + p);
@@ -1138,11 +1180,7 @@ public class JobShop {
                     long pri = rs.getLong("priority");
 
                     Plan plan = plans.get(planid);
-                    assert(plan != null);
-
                     SKU sku = skus.get(skuid);
-                    assert(sku != null);
-
                     String dmdKey = planid + "-" + demid;
 
                     Demand dmd = new Demand(demid, custid, sku, due.toLocalDateTime(),
@@ -1233,8 +1271,6 @@ public class JobShop {
 
                     Task succ = tasks.get(skuid + "-" + taskid);
                     Task pred = tasks.get(skuid + "-" + predecessor);
-                    assert(succ != null);
-                    assert(pred != null);
 
                     succ.setPredecessor(pred);
                     pred.setSuccessor(succ);
@@ -1314,8 +1350,6 @@ public class JobShop {
 
                     Task t = tasks.get(skuid + "-" + taskid);
                     Workcenter w = workcenters.get(wrkid);
-                    assert(t != null);
-                    assert(w != null);
 
                     t.addWorkcenter(w, pri);
                     w.addTask(t);
@@ -1427,11 +1461,6 @@ public class JobShop {
                     Workcenter w = workcenters.get(wrkid);
                     Demand d = demands.get(dmdKey);
 
-                    assert(t != null);
-                    assert(wrkid.length() > 0 || w != null);
-                    assert(pln != null);
-                    assert(dmdid.length() > 0 || d != null);
-
                     ReleasedWorkOrder rwo = new ReleasedWorkOrder(woid,
                                                  lotid, t, pln, w,
                                                  st.toLocalDateTime(),
@@ -1455,9 +1484,17 @@ public class JobShop {
      * Generates a plan for the given plan; we plan one demand at a time
      * in the order of ascending priority (lower value of priority means
      * a more important demand)
-     * @param plan Plan for which we are generating the jobshop plan
+     * @param planid String representing id of plan for which we
+     *                      are generating the jobshop plan
      */
-    public void generatePlan(Plan plan) {
+    public void generatePlan(String planid) {
+
+        if (!this.plans.containsKey(planid)) {
+            System.err.println("Error! " + planid + " not a valid plan ID");
+            System.exit(303);
+        }
+
+        Plan plan = this.plans.get(planid);
 
         List<Demand> demands = this.demands.values().stream()
                                    .filter(d -> d.getPlan().equals(plan))
@@ -1474,10 +1511,10 @@ public class JobShop {
      * A utility function to print out data about the different objects
      * in the JobShop model.  This can be used to generate output
      * files that are compared to expect files for regression testing
-     * @param p Plan for which we are printing output
+     * @param p String id of the Plan for which we are printing output
      */
-    public void print(Plan p) {
-        List<Plan> plns = new ArrayList<Plan>();
+    public void print(String p) {
+        List<String> plns = new ArrayList<String>();
         plns.add(p);
         print(plns);
     }
@@ -1486,9 +1523,19 @@ public class JobShop {
      * A utility function to print out data about the different objects
      * in the JobShop model.  This can be used to generate output
      * files that are compared to expect files for regression testing
-     * @param plns A List of Plans for which we are printing output
+     * @param plnids A List of String representing the planids of the plans
+     *               for which we are printing output
      */
-    public void print(List<Plan> plns) {
+    public void print(List<String> plnids) {
+
+        List<Plan> plns = new ArrayList<Plan>();
+        for (String p : plnids) {
+            if (!this.plans.containsKey(p)) {
+                System.err.println("Error! " + p + " not a valid plan ID");
+                System.exit(303);
+            }
+            plns.add(this.plans.get(p));
+        }
 
         String inmode = this.options.get("input_mode");
         String outmode = this.options.get("output_mode");
@@ -1691,9 +1738,11 @@ public class JobShop {
      * A utility function to print out data about the different objects
      * in the JobShop model in a JSON format.  This can be used to
      * visualize the plan results in a web browser (poor man's UI)
+     * @param p String representing planid for which we are exporting JSON
+     *                 version of the plan output
      */
-    public void exportJSON(Plan p) {
-        List<Plan> plns = new ArrayList<Plan>();
+    public void exportJSON(String p) {
+        List<String> plns = new ArrayList<String>();
         plns.add(p);
         exportJSON(plns);
     }
@@ -1703,9 +1752,19 @@ public class JobShop {
      * A utility function to print out data about the different objects
      * in the JobShop model in a JSON format.  This can be used to
      * visualize the plan results in a web browser (poor man's UI)
-     * @param plns A List of Plans for which we want to generate the output
+     * @param plnids A List of String representing the ids's of the plans
+     *            for which we want to generate the JSON output
      */
-    public void exportJSON(List<Plan> plns) {
+    public void exportJSON(List<String> plnids) {
+
+        List<Plan> plns = new ArrayList<Plan>();
+        for (String p : plnids) {
+            if (!this.plans.containsKey(p)) {
+                System.err.println("Error! " + p + " not a valid plan ID");
+                System.exit(303);
+            }
+            plns.add(this.plans.get(p));
+        }
 
         String plnStr = String.join("_", plns.stream()
                                          .map(Plan::getID)
@@ -1876,10 +1935,11 @@ public class JobShop {
     }
 
     /**
-     * Return a list of the plans in this JobShop model
+     * Return a list of the strings representing the plans in this JobShop model
+     * @return List<String> with names/id's of plans in the JobShop
      */
-    public List<Plan> getPlans() {
-        return new ArrayList<Plan>(this.plans.values());
+    public List<String> getPlanIDs() {
+        return new ArrayList<String>(this.plans.keySet());
     }
 
     /**

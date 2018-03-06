@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
  * A plan also has a PlanParams object that defines various parameters
  * that govern planning logic for that plan
  */
-public class Plan {
+class Plan {
 
     private String id;
     private LocalDateTime start;
